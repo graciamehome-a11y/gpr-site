@@ -1,0 +1,69 @@
+.container {
+  padding: 2rem;
+  font-family: sans-serif;
+}
+
+.form {
+  margin-bottom: 2rem;
+  display: grid;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 6px;
+}
+
+.button {
+  padding: 8px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.th {
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+  padding: 8px;
+}
+
+.td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.statutForm {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.enAttente {
+  background: #fbf0dd;
+  color: #b5750a;
+}
+.valide {
+  background: #e7f5ec;
+  color: #2f8f5b;
+}
+.refuse {
+  background: #fbeae7;
+  color: #c0392b;
+}
+.livre {
+  background: #e7f5ec;
+  color: #2f8f5b;
+}
