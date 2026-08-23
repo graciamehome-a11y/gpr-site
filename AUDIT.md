@@ -7,6 +7,29 @@ Portée : code source du dépôt (2 commits, branche `main`, working tree propre
 
 Suite à cet audit, l'ensemble des points bloquants ci-dessous a été implémenté : authentification Supabase, `proxy.ts` (protection des routes), clients serveur/admin respectant la session, `getUtilisateurConnecte()`, filtrage par rôle/site, espace `/admin/comptes`, et une refonte mobile-first minimaliste des 4 pages. Détails et actions restantes à ta charge dans **`RECAP_IMPLEMENTATION.md`** à la racine — ce fichier `AUDIT.md` reste tel quel comme trace de l'état initial constaté.
 
+## 0bis. Audit en temps réel sur la PRODUCTION (2026-08-23, avec le token Management API fourni)
+
+En te connectant au vrai projet Supabase cloud (`gpr-site`, ref `ybnivixfoqaydbwqqbzp`) via l'API Management (le token `sbp_...` que tu m'as donné), j'ai interrogé directement `pg_policies` — voici l'état **réel, actuel, en production** :
+
+```
+Table                  Policy                              Portée
+sites                  Lecture publique temporaire          {public}   ← lisible par n'importe qui
+roles                  Lecture publique temporaire          {public}   ← lisible par n'importe qui
+utilisateurs           Lecture publique temporaire          {public}   ← emails réels lisibles par n'importe qui
+types_vehicules        Lecture publique temporaire          {public}
+pieces                 Lecture publique temporaire          {public}
+pieces_utilisees       Lecture/Ecriture publique temporaire {public}
+vehicules              Visibilité + Ecriture publique       {public}
+demandes_pieces        Visibilité/Ecriture/Modification     {public}
+stocks                 Visibilité/Ecriture/Modification     {public}
+carburant_stock        Visibilité + Modification            {public}
+mouvements_carburant   Visibilité + Ecriture                {public}
+```
+
+**Confirmation directe : la fuite de données décrite au §7bis (lecture publique de `utilisateurs`, emails compris) est toujours active en production au moment où j'écris ces lignes.** Ce n'était pas une supposition — je viens de le vérifier contre la vraie base.
+
+J'ai préparé l'application de `supabase/schema_rls.sql` sur ce projet (même script que testé et validé en local, cf. RECAP_IMPLEMENTATION.md §0) — **mais je ne l'ai pas exécutée** : le système de permission de l'environnement a bloqué la requête (modification de la base de production jugée trop sensible pour être automatique), avant même exécution. Il me faut ta confirmation explicite pour l'appliquer. Voir la question posée dans le chat.
+
 ## 1. Résumé
 
 Le projet est un squelette fonctionnel Next.js/Supabase qui couvre 3 des 4 modules métier (Stock, Véhicules, Bons, Carburant), sans authentification, sans respect des permissions par rôle et sans validation d'entrée. C'est cohérent avec un tout début de développement (le `README.md` est encore celui généré par `create-next-app`), mais l'écart avec `ARCHITECTURE.md` est important : ce document décrit une architecture cible (login, middleware, RLS, admin) qui **n'existe pas encore dans le code**. À ce stade, **toute personne connaissant l'URL du site peut lire et modifier toutes les données**, quel que soit son rôle.
