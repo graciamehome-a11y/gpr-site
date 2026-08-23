@@ -44,12 +44,13 @@ gpr-site/
 │           ├── page.tsx          # Création de comptes (accès restreint)
 │           └── actions.ts
 ├── lib/
-│   ├── supabaseClient.ts         # Client "anon" (hérité, en cours de retrait)
 │   ├── supabaseBrowserClient.ts  # Client navigateur (composants interactifs)
 │   ├── supabaseServerClient.ts   # Client serveur (pages, respecte la session)
 │   ├── supabaseAdminClient.ts    # Client "service_role" (admin uniquement)
 │   └── getUtilisateurConnecte.ts # Récupère rôle/site de la personne connectée
-├── middleware.ts                  # Redirige vers /login si non connecté
+├── proxy.ts                       # Redirige vers /login si non connecté
+│                                   # (renommé depuis middleware.ts dans cette version de Next.js —
+│                                   #  voir node_modules/next/dist/docs/.../file-conventions/proxy.md)
 └── .env.local                     # Variables d'environnement (jamais commité)
 ```
 
@@ -83,7 +84,7 @@ gpr-site/
 
 ## 6. Points d'attention pour la suite du développement
 
-- `lib/supabaseClient.ts` (client anon simple) est un reliquat du début du projet — à terme, toute page devrait utiliser `supabaseServerClient.ts` pour que les RLS s'appliquent correctement.
+- `lib/supabaseClient.ts` (client anon simple, sans session) a été retiré : toutes les pages utilisent désormais `supabaseServerClient.ts` pour que les RLS s'appliquent correctement.
 - La mise en forme visuelle actuelle est minimale (CSS de base) — un prototype HTML validé avec le client existe et sert de référence pour le design final.
 - Aucune donnée réelle sensible (dotations par unité, quantités opérationnelles réelles) ne doit être saisie tant que le client n'a pas validé l'hébergement et le traitement de ce niveau de détail.
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import styles from "./page.module.css";
+import { Champ, Selecteur } from "@/app/components/ui";
 
 type Props = {
   types: { id: number; nom: string }[];
@@ -11,30 +11,27 @@ export default function VehiculeSelect({ types }: Props) {
   const [autreChoisi, setAutreChoisi] = useState(false);
 
   return (
-    <label>
-      Véhicule
-      <select
+    <div className="space-y-3">
+      <Selecteur
+        label="Véhicule"
         name="vehicule_nom_select"
         required
-        className={styles.select}
+        defaultValue=""
         onChange={(e) => setAutreChoisi(e.target.value === "AUTRE")}
       >
-        <option value="">-- choisir --</option>
+        <option value="" disabled>
+          -- choisir --
+        </option>
         {types.map((t) => (
           <option key={t.id} value={t.nom}>
             {t.nom}
           </option>
         ))}
-        <option value="AUTRE">Autre...</option>
-      </select>
+        <option value="AUTRE">Autre…</option>
+      </Selecteur>
       {autreChoisi && (
-        <input
-          name="vehicule_nom_autre"
-          placeholder="Précisez le véhicule"
-          required
-          className={styles.input}
-        />
+        <Champ label="Précisez le véhicule" name="vehicule_nom_autre" required autoFocus />
       )}
-    </label>
+    </div>
   );
 }

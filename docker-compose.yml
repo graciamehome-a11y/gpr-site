@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    ports:
+      - "3001:3000"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      # Le navigateur (hôte) et le serveur Next.js (conteneur) n'atteignent pas le
+      # stack Supabase local par la même adresse — voir lib/supabaseUrl.ts.
+      SUPABASE_URL_INTERNE: ${SUPABASE_URL_INTERNE:-http://host.docker.internal:55321}
+    # Permet au conteneur d'atteindre le stack Supabase local (lancé séparément
+    # via `supabase start`, qui publie ses ports sur l'hôte).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
