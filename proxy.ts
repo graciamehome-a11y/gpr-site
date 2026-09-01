@@ -5,7 +5,7 @@ import { urlSupabaseServeur } from "@/lib/supabaseUrl";
 // Dans cette version de Next.js, "middleware.ts" a été renommé "proxy.ts"
 // (voir node_modules/next/dist/docs/.../file-conventions/proxy.md).
 
-const ROUTES_PUBLIQUES = ["/login", "/offline"];
+const ROUTES_PUBLIQUES = ["/login", "/offline", "/api/keep-alive"];
 
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
