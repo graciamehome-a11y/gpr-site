@@ -21,11 +21,16 @@ Application web interne de gestion des pièces de rechange, véhicules, carburan
 ```
 gpr-site/
 ├── app/
-│   ├── page.tsx                 # Page Stock (accueil, "/")
-│   ├── actions.ts                # Actions serveur liées au Stock
+│   ├── page.tsx                 # Tableau de bord ("/"), adapté au rôle de la personne connectée
 │   ├── layout.tsx                # Layout global (inclut la Navbar)
 │   ├── components/
-│   │   └── Navbar.tsx            # Barre de navigation + infos utilisateur connecté
+│   │   ├── Navbar.tsx            # Barre de navigation (serveur) + infos utilisateur connecté
+│   │   ├── NavLiens.tsx          # Liens de nav (client) avec état actif — usePathname
+│   │   ├── icones.tsx            # Jeu d'icônes maison partagé (nav, tableau de bord, en-têtes)
+│   │   └── ui.tsx                # Primitives : Carte, Section, Stat, Raccourci, Ligne, Badge…
+│   ├── stock/
+│   │   ├── page.tsx              # Stock des pièces par site (seuils d'alerte)
+│   │   └── actions.ts            # definirStock()
 │   ├── login/
 │   │   ├── page.tsx              # Formulaire de connexion
 │   │   └── actions.ts            # connexion() / deconnexion()
@@ -85,7 +90,7 @@ gpr-site/
 ## 6. Points d'attention pour la suite du développement
 
 - `lib/supabaseClient.ts` (client anon simple, sans session) a été retiré : toutes les pages utilisent désormais `supabaseServerClient.ts` pour que les RLS s'appliquent correctement.
-- La mise en forme visuelle actuelle est minimale (CSS de base) — un prototype HTML validé avec le client existe et sert de référence pour le design final.
+- Design : Tailwind v4, base neutre + un seul accent (indigo, `--color-accent-*` dans `globals.css`) réservé aux actions et à la navigation active. Primitives partagées dans `app/components/ui.tsx`. Un prototype HTML validé avec le client sert de référence — à récupérer pour aligner les derniers détails.
 - Aucune donnée réelle sensible (dotations par unité, quantités opérationnelles réelles) ne doit être saisie tant que le client n'a pas validé l'hébergement et le traitement de ce niveau de détail.
 
 ## 7. Variables d'environnement nécessaires (`.env.local`, non commité)

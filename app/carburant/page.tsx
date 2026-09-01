@@ -1,7 +1,8 @@
 import { supabaseServeur } from "@/lib/supabaseServerClient";
 import { getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
 import { ajouterMouvementCarburant } from "./actions";
-import { BoutonPrincipal, Carte, EtatVide, Selecteur, TitrePage } from "@/app/components/ui";
+import { Astuce, BoutonPrincipal, Carte, Conteneur, EtatVide, Selecteur, SousTitre, TitrePage } from "@/app/components/ui";
+import { IlluCarburant } from "@/app/components/illustrations";
 import ChampQuantite from "@/app/components/ChampQuantite";
 
 type Stock = { id: number; type: string; quantite_litres: number; sites: { nom: string } | null };
@@ -40,11 +41,15 @@ export default async function Carburant() {
     .returns<Mouvement[]>();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <TitrePage titre="Carburant" description="Solde par détachement — gasoil et essence." />
+    <Conteneur>
+      <TitrePage titre="Carburant" icone="carburant" description="Solde par détachement — gasoil et essence." />
 
       {sites && sites.length === 0 ? (
-        <EtatVide titre="Aucun détachement visible" description="Ce module concerne uniquement D1 Nikki et D2 Bessassi." />
+        <EtatVide
+          illustration={<IlluCarburant size={132} />}
+          titre="Aucun détachement visible"
+          description="Ce module concerne uniquement D1 Nikki et D2 Bessassi. Le Garage Central et le Comptable Matières n'ont pas de suivi carburant."
+        />
       ) : (
         <div className="mb-6 grid grid-cols-2 gap-3">
           {sites?.map((site) => (
@@ -70,9 +75,13 @@ export default async function Carburant() {
 
       {sites && sites.length > 0 && (
         <Carte className="mb-6">
-          <p className="mb-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Nouveau mouvement
-          </p>
+          <SousTitre>Nouveau mouvement</SousTitre>
+          <div className="mb-3">
+            <Astuce>
+              <strong>Ravitaillement</strong> ajoute des litres, <strong>Consommation</strong> en
+              retire. Le solde du détachement se recalcule tout seul.
+            </Astuce>
+          </div>
           <form action={ajouterMouvementCarburant} className="grid grid-cols-2 gap-3">
             {choixSiteNecessaire ? (
               <div className="col-span-2">
@@ -130,6 +139,6 @@ export default async function Carburant() {
           ))}
         </ul>
       )}
-    </div>
+    </Conteneur>
   );
 }

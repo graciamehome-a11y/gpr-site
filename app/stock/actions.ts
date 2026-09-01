@@ -22,5 +22,6 @@ export async function definirStock(formData: FormData) {
     );
 
   if (error) throw new Error(error.message);
+  revalidatePath("/stock");
   revalidatePath("/");
 }

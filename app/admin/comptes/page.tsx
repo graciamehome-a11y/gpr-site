@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { supabaseServeur } from "@/lib/supabaseServerClient";
 import { aVueGlobale, getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
 import { creerCompte } from "./actions";
-import { BoutonPrincipal, Carte, Champ, Selecteur, TitrePage } from "@/app/components/ui";
+import { BoutonPrincipal, Carte, Champ, Conteneur, Selecteur, TitrePage } from "@/app/components/ui";
 
 type Compte = {
   id: number;
@@ -28,9 +28,10 @@ export default async function AdminComptes() {
   const { data: sites } = await supabase.from("sites").select("id, nom").order("nom");
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <Conteneur>
       <TitrePage
         titre="Comptes"
+        icone="comptes"
         description="Création réservée aux rôles à vue globale. Un email d'invitation est envoyé pour définir le mot de passe."
       />
 
@@ -89,7 +90,7 @@ export default async function AdminComptes() {
           </li>
         ))}
       </ul>
-    </div>
+    </Conteneur>
   );
 }
 

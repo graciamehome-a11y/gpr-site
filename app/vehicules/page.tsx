@@ -1,7 +1,8 @@
 import { supabaseServeur } from "@/lib/supabaseServerClient";
 import { aVueGlobale, getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
 import { ajouterVehicule, ajouterUtilisation, changerStatutVehicule } from "./actions";
-import { BoutonPrincipal, Carte, Champ, EtatVide, Selecteur, TitrePage } from "@/app/components/ui";
+import { Astuce, BoutonPrincipal, Carte, Champ, Conteneur, EtatVide, Selecteur, SousTitre, TitrePage } from "@/app/components/ui";
+import { IlluVehicules } from "@/app/components/illustrations";
 import ChampRecherche from "@/app/components/ChampRecherche";
 import ChampQuantite from "@/app/components/ChampQuantite";
 
@@ -54,13 +55,17 @@ export default async function Vehicules() {
     .returns<Utilisation[]>();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <TitrePage titre="Véhicules" />
+    <Conteneur>
+      <TitrePage titre="Véhicules" icone="vehicules" description="Arrivées, statuts et pièces utilisées." />
 
       <Carte className="mb-6">
-        <p className="mb-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-          Arrivée d&apos;un véhicule
-        </p>
+        <SousTitre>Arrivée d&apos;un véhicule</SousTitre>
+        <div className="mb-3">
+          <Astuce>
+            Une fois le véhicule enregistré, tapez directement sur un statut pour le faire
+            avancer : <strong>Arrivé → En réparation → Transféré → Prêt</strong>.
+          </Astuce>
+        </div>
         <form action={ajouterVehicule} className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <Champ label="Immatriculation" name="immatriculation" required autoFocus />
@@ -98,7 +103,11 @@ export default async function Vehicules() {
       </Carte>
 
       {vehicules && vehicules.length === 0 && (
-        <EtatVide titre="Aucun véhicule enregistré" />
+        <EtatVide
+          illustration={<IlluVehicules size={150} />}
+          titre="Aucun véhicule enregistré"
+          description="Enregistrez une arrivée avec le formulaire ci-dessus : le véhicule apparaîtra ici avec son statut, et vous pourrez lui associer les pièces posées."
+        />
       )}
 
       <ul className="mb-8 space-y-2">
@@ -142,9 +151,14 @@ export default async function Vehicules() {
       </ul>
 
       <Carte className="mb-6">
-        <p className="mb-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-          Pièce utilisée pour une réparation
-        </p>
+        <SousTitre>Pièce utilisée pour une réparation</SousTitre>
+        <div className="mb-3">
+          <Astuce>
+            À saisir au fil de l&apos;intervention : chaque pièce posée sur le véhicule, avec sa
+            date. C&apos;est l&apos;historique qui permet à un autre technicien de reprendre le
+            travail.
+          </Astuce>
+        </div>
         <form action={ajouterUtilisation} className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <ChampRecherche
@@ -199,6 +213,6 @@ export default async function Vehicules() {
           ))}
         </ul>
       )}
-    </div>
+    </Conteneur>
   );
 }

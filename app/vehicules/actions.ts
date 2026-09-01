@@ -19,6 +19,7 @@ export async function ajouterVehicule(formData: FormData) {
 
   if (error) throw new Error(error.message);
   revalidatePath("/vehicules");
+  revalidatePath("/");
 }
 
 export async function changerStatutVehicule(id: number, statut: string) {
@@ -26,6 +27,7 @@ export async function changerStatutVehicule(id: number, statut: string) {
   const { error } = await supabase.from("vehicules").update({ statut }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/vehicules");
+  revalidatePath("/");
 }
 
 export async function ajouterUtilisation(formData: FormData) {
@@ -48,4 +50,5 @@ export async function ajouterUtilisation(formData: FormData) {
 
   if (error) throw new Error(error.message);
   revalidatePath("/vehicules");
+  revalidatePath("/");
 }

@@ -18,10 +18,10 @@ function FormulaireConnexion() {
   const suivant = params.get("suivant") ?? "/";
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-950">
+    <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-600 text-white shadow-lg shadow-accent-600/25">
             <svg
               width="24"
               height="24"
@@ -43,7 +43,10 @@ function FormulaireConnexion() {
           </p>
         </div>
 
-        <form action={action} className="space-y-3">
+        <form
+          action={action}
+          className="space-y-3 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-sm shadow-neutral-950/[0.04] dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none"
+        >
           <input type="hidden" name="suivant" value={suivant} />
           <div>
             <label htmlFor="email" className="sr-only">
@@ -57,7 +60,7 @@ function FormulaireConnexion() {
               placeholder="Email"
               required
               autoFocus
-              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-[15px] outline-none focus:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-900"
+              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-accent-400 dark:border-neutral-800 dark:bg-neutral-950"
             />
           </div>
           <div>
@@ -71,7 +74,7 @@ function FormulaireConnexion() {
               autoComplete="current-password"
               placeholder="Mot de passe"
               required
-              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-[15px] outline-none focus:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-900"
+              className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-accent-400 dark:border-neutral-800 dark:bg-neutral-950"
             />
           </div>
 
@@ -84,7 +87,7 @@ function FormulaireConnexion() {
           <button
             type="submit"
             disabled={enCours}
-            className="w-full rounded-xl bg-neutral-900 px-4 py-3 text-[15px] font-medium text-white transition active:scale-[0.98] disabled:opacity-60 dark:bg-white dark:text-neutral-900"
+            className="w-full rounded-xl bg-accent-600 px-4 py-3 text-[15px] font-medium text-white transition hover:bg-accent-700 active:scale-[0.98] disabled:opacity-60"
           >
             {enCours ? "Connexion…" : "Se connecter"}
           </button>

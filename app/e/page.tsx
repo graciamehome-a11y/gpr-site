@@ -3,7 +3,8 @@ import {
   aVueGlobale,
   getUtilisateurConnecte,
 } from "@/lib/getUtilisateurConnecte";
-import { Carte, TitrePage } from "@/app/components/ui";
+import { Carte, Conteneur, FluxStatuts, TitrePage } from "@/app/components/ui";
+import { IlluReseau } from "@/app/components/illustrations";
 
 const LABELS_ROLE: Record<string, string> = {
   technicien: "Technicien",
@@ -33,9 +34,10 @@ export default async function Explication() {
   const carburant = accesCarburant(utilisateur);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <Conteneur>
       <TitrePage
         titre="Comment ça marche"
+        icone="aide"
         description="Le guide rapide de la plateforme GPR."
       />
 
@@ -60,15 +62,29 @@ export default async function Explication() {
 
       <div className="space-y-2">
         <Section titre="🧭 Vue d'ensemble">
-          <p>
-            GPR remplace les échanges oraux, les déplacements et les bons papier par une
-            visibilité partagée en temps réel : qui a quelle pièce, où est chaque véhicule,
-            quels bons sont en attente, combien de carburant reste-t-il.
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <IlluReseau size={120} className="mx-auto shrink-0 sm:mx-0" />
+            <p>
+              GPR remplace les échanges oraux, les déplacements et les bons papier par une
+              visibilité partagée en temps réel : qui a quelle pièce, où est chaque véhicule,
+              quels bons sont en attente, combien de carburant reste-t-il. Un site central
+              (Garage Central), deux détachements (D1 Nikki, D2 Bessassi) et la Réserve
+              Comptable Matières.
+            </p>
+          </div>
           <p>
             Le bon papier reste la référence officielle pour les signatures — le site est une
             mémoire numérique complémentaire, pas un circuit de validation.
           </p>
+        </Section>
+
+        <Section titre="🏠 Accueil (tableau de bord)">
+          <p>
+            La page d&apos;accueil résume votre journée : bons en attente, véhicules en réparation,
+            pièces sous le seuil d&apos;alerte{carburant ? ", solde de carburant" : ""}, activité récente,
+            et des raccourcis vers les actions les plus fréquentes de votre rôle.
+          </p>
+          <p>Tout y est déjà filtré selon ce que vous avez le droit de voir.</p>
         </Section>
 
         <Section titre="📦 Stock">
@@ -83,12 +99,19 @@ export default async function Explication() {
         </Section>
 
         <Section titre="🚚 Véhicules">
-          <p>Enregistrer l&apos;arrivée d&apos;un véhicule (immatriculation, type, site), puis suivre son statut en le tapant directement : Arrivé → En réparation → Transféré → Prêt.</p>
+          <p>Enregistrer l&apos;arrivée d&apos;un véhicule (immatriculation, type, site), puis suivre son statut en le tapant directement :</p>
+          <div className="py-1">
+            <FluxStatuts etapes={["Arrivé", "En réparation", "Transféré", "Prêt"]} />
+          </div>
           <p>Section « Pièce utilisée » : enregistrer ce qui a été consommé sur un véhicule, avec la date (aujourd&apos;hui par défaut, modifiable).</p>
         </Section>
 
         <Section titre="📋 Bons">
-          <p>Enregistrer une demande de pièce (véhicule, pièce, quantité). Le statut (en attente / validé / refusé / livré) se change en un tap, directement sur la fiche.</p>
+          <p>Enregistrer une demande de pièce (véhicule, pièce, quantité). Le statut se change en un tap, directement sur la fiche :</p>
+          <div className="py-1">
+            <FluxStatuts etapes={["En attente", "Validé", "Livré"]} />
+          </div>
+          <p>« Refusé » reste possible à tout moment.</p>
         </Section>
 
         {carburant && (
@@ -121,6 +144,6 @@ export default async function Explication() {
           </ul>
         </Section>
       </div>
-    </div>
+    </Conteneur>
   );
 }

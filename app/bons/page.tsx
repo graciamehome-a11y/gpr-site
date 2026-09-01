@@ -2,7 +2,8 @@ import { supabaseServeur } from "@/lib/supabaseServerClient";
 import { aVueGlobale, getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
 import { ajouterDemande, mettreAJourStatut } from "./actions";
 import VehiculeSelect from "./VehiculeSelect";
-import { Badge, BoutonPrincipal, Carte, Champ, EtatVide, Selecteur, TitrePage } from "@/app/components/ui";
+import { Astuce, Badge, BoutonPrincipal, Carte, Champ, Conteneur, EtatVide, FluxStatuts, Selecteur, SousTitre, TitrePage } from "@/app/components/ui";
+import { IlluBons } from "@/app/components/illustrations";
 import ChampRecherche from "@/app/components/ChampRecherche";
 import ChampQuantite from "@/app/components/ChampQuantite";
 
@@ -41,13 +42,17 @@ export default async function Bons() {
     : { data: null };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <TitrePage titre="Registre des bons" />
+    <Conteneur>
+      <TitrePage titre="Registre des bons" icone="bons" description="Mémoire numérique des demandes de pièces." />
 
       <Carte className="mb-6">
-        <p className="mb-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-          Nouvelle demande
-        </p>
+        <SousTitre>Nouvelle demande</SousTitre>
+        <div className="mb-3">
+          <Astuce>
+            Le bon papier reste la référence officielle pour les signatures. Ici, c&apos;est la
+            mémoire numérique : on garde la trace et on suit le statut.
+          </Astuce>
+        </div>
         <form action={ajouterDemande} className="space-y-3">
           <VehiculeSelect types={types ?? []} />
 
@@ -92,7 +97,23 @@ export default async function Bons() {
         </form>
       </Carte>
 
-      {bons && bons.length === 0 && <EtatVide titre="Aucun bon enregistré" />}
+      {bons && bons.length === 0 && (
+        <EtatVide
+          illustration={<IlluBons size={140} />}
+          titre="Aucun bon enregistré"
+          description="Créez une demande ci-dessus. Chaque bon suit ensuite son cycle de vie, que vous faites avancer en un tap."
+        />
+      )}
+
+      {bons && bons.length > 0 && (
+        <div className="mb-3 rounded-xl border border-neutral-100 px-3.5 py-2.5 dark:border-neutral-800">
+          <p className="mb-2 text-xs font-medium text-neutral-500">Cycle de vie d&apos;un bon</p>
+          <FluxStatuts etapes={["En attente", "Validé", "Livré"]} />
+          <p className="mt-2 text-xs text-neutral-400">
+            « Refusé » est aussi possible. Le statut se change en tapant dessus sur la fiche.
+          </p>
+        </div>
+      )}
 
       <ul className="space-y-2">
         {bons?.map((b) => (
@@ -134,6 +155,6 @@ export default async function Bons() {
           </li>
         ))}
       </ul>
-    </div>
+    </Conteneur>
   );
 }

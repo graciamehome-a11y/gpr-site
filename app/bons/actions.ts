@@ -36,6 +36,7 @@ export async function ajouterDemande(formData: FormData) {
 
   if (error) throw new Error(error.message);
   revalidatePath("/bons");
+  revalidatePath("/");
 }
 
 export async function mettreAJourStatut(id: number, statut: string) {
@@ -43,4 +44,5 @@ export async function mettreAJourStatut(id: number, statut: string) {
   const { error } = await supabase.from("demandes_pieces").update({ statut }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/bons");
+  revalidatePath("/");
 }

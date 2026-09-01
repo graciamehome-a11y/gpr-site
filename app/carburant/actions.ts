@@ -38,4 +38,5 @@ export async function ajouterMouvementCarburant(formData: FormData) {
   if (errorAjustement) throw new Error(errorAjustement.message);
 
   revalidatePath("/carburant");
+  revalidatePath("/");
 }
