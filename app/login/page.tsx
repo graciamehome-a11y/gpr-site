@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useActionState } from "react";
+import { Suspense, useActionState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { connexion } from "./actions";
 
@@ -16,6 +16,13 @@ function FormulaireConnexion() {
   const [etat, action, enCours] = useActionState(connexion, undefined);
   const params = useSearchParams();
   const suivant = params.get("suivant") ?? "/";
+
+  // Sécurité appareil partagé : à l'arrivée sur /login (donc après déconnexion
+  // ou expiration de session), on purge le contenu authentifié mis en cache
+  // hors ligne par le service worker.
+  useEffect(() => {
+    navigator.serviceWorker?.controller?.postMessage({ type: "CLEAR_RUNTIME" });
+  }, []);
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">

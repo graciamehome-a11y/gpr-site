@@ -5,7 +5,7 @@ import { urlSupabaseServeur } from "@/lib/supabaseUrl";
 // Dans cette version de Next.js, "middleware.ts" a été renommé "proxy.ts"
 // (voir node_modules/next/dist/docs/.../file-conventions/proxy.md).
 
-const ROUTES_PUBLIQUES = ["/login"];
+const ROUTES_PUBLIQUES = ["/login", "/offline"];
 
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -57,5 +57,10 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.svg$).*)"],
+  // On exclut aussi les fichiers PWA servis depuis /public (sw.js, manifeste,
+  // icônes) : ils doivent rester accessibles sans session, sinon le service
+  // worker ne peut pas s'enregistrer.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icons/|.*\\.(?:svg|png|ico|webmanifest)$).*)",
+  ],
 };

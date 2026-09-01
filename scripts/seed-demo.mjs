@@ -32,10 +32,6 @@ if (!url.includes("127.0.0.1") && !url.includes("localhost")) {
 const db = createClient(url, serviceKey, { auth: { persistSession: false } });
 const reset = process.argv.includes("--reset");
 
-function nom(id, liste) {
-  return liste.find((x) => x.id === id);
-}
-
 const { data: sites } = await db.from("sites").select("id, nom, type");
 const { data: pieces } = await db.from("pieces").select("id, nom").order("id");
 const { data: users } = await db.from("utilisateurs").select("id, prenom, nom, roles(nom)");
