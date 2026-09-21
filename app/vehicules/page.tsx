@@ -1,10 +1,10 @@
 import { supabaseServeur } from "@/lib/supabaseServerClient";
 import { aVueGlobale, getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
-import { ajouterVehicule, ajouterUtilisation, changerStatutVehicule } from "./actions";
-import { Astuce, BoutonPrincipal, Carte, Champ, Conteneur, EtatVide, Selecteur, SousTitre, TitrePage } from "@/app/components/ui";
+import { libellePiece, libelleTypeVehicule } from "@/lib/libelles";
+import { ajouterVehicule, changerStatutVehicule } from "./actions";
+import { Aide, Astuce, BoutonPrincipal, Carte, Champ, Conteneur, EtatVide, Selecteur, SousTitre, TitrePage } from "@/app/components/ui";
 import { IlluVehicules } from "@/app/components/illustrations";
-import ChampRecherche from "@/app/components/ChampRecherche";
-import ChampQuantite from "@/app/components/ChampQuantite";
+import FormulaireUtilisation from "./FormulaireUtilisation";
 
 type Vehicule = {
   id: number;
@@ -14,13 +14,19 @@ type Vehicule = {
   sites: { nom: string } | null;
 };
 
+type Piece = {
+  id: number;
+  nom: string;
+  types_vehicules: { nom: string } | null;
+};
+
 type Utilisation = {
   id: number;
   quantite: number;
   date_utilisation: string;
   utilisateur_nom: string | null;
   vehicules: { immatriculation: string } | null;
-  pieces: { nom: string } | null;
+  pieces: { nom: string; types_vehicules: { nom: string } | null } | null;
 };
 
 const STATUTS: { valeur: string; label: string }[] = [
@@ -45,11 +51,17 @@ export default async function Vehicules() {
   const { data: sites } = vueGlobale
     ? await supabase.from("sites").select("id, nom").order("nom")
     : { data: null };
-  const { data: pieces } = await supabase.from("pieces").select("id, nom").order("nom");
+  const { data: pieces } = await supabase
+    .from("pieces")
+    .select("id, nom, types_vehicules(nom)")
+    .order("nom")
+    .returns<Piece[]>();
 
   const { data: utilisations } = await supabase
     .from("pieces_utilisees")
-    .select("id, quantite, date_utilisation, utilisateur_nom, vehicules(immatriculation), pieces(nom)")
+    .select(
+      "id, quantite, date_utilisation, utilisateur_nom, vehicules(immatriculation), pieces(nom, types_vehicules(nom))",
+    )
     .order("date_utilisation", { ascending: false })
     .limit(20)
     .returns<Utilisation[]>();
@@ -57,6 +69,24 @@ export default async function Vehicules() {
   return (
     <Conteneur>
       <TitrePage titre="Véhicules" icone="vehicules" description="Arrivées, statuts et pièces utilisées." />
+
+      <Aide titre="À quoi sert cette page ?">
+        <p>
+          Elle suit la vie d&apos;un véhicule au garage, en commençant par son{" "}
+          <strong>arrivée</strong>. Une fois enregistré, son statut se fait avancer d&apos;un tap :{" "}
+          <strong>Arrivé → En réparation → Transféré → Prêt</strong>.
+        </p>
+        <p>
+          Ensuite, chaque pièce posée sur le véhicule se déclare dans{" "}
+          <strong>« Pièce utilisée »</strong>. C&apos;est ce geste qui{" "}
+          <strong>retire la quantité du stock</strong> du site où se trouve le véhicule —
+          vous n&apos;avez rien à décompter vous-même.
+        </p>
+        <p>
+          C&apos;est aussi cet historique qui permet à un autre technicien de reprendre le travail
+          sans redemander ce qui a déjà été fait.
+        </p>
+      </Aide>
 
       <Carte className="mb-6">
         <SousTitre>Arrivée d&apos;un véhicule</SousTitre>
@@ -150,63 +180,37 @@ export default async function Vehicules() {
         ))}
       </ul>
 
-      <Carte className="mb-6">
-        <SousTitre>Pièce utilisée pour une réparation</SousTitre>
-        <div className="mb-3">
-          <Astuce>
-            À saisir au fil de l&apos;intervention : chaque pièce posée sur le véhicule, avec sa
-            date. C&apos;est l&apos;historique qui permet à un autre technicien de reprendre le
-            travail.
-          </Astuce>
-        </div>
-        <form action={ajouterUtilisation} className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <ChampRecherche
-              label="Véhicule"
-              name="vehicule_id"
-              required
-              storageKey="recents-vehicules-utilisation"
-              placeholder="Immatriculation…"
-              options={vehicules?.map((v) => ({ id: v.id, label: v.immatriculation })) ?? []}
-            />
-          </div>
-          <div className="col-span-2">
-            <ChampRecherche
-              label="Pièce"
-              name="piece_id"
-              required
-              storageKey="recents-pieces-utilisation"
-              options={pieces?.map((p) => ({ id: p.id, label: p.nom })) ?? []}
-            />
-          </div>
-          <ChampQuantite name="quantite" label="Quantité" defaut={1} min={1} />
-          <details className="col-span-2 text-sm">
-            <summary className="cursor-pointer select-none text-neutral-500">
-              Date : aujourd&apos;hui (modifier)
-            </summary>
-            <div className="mt-2">
-              <Champ
-                label="Date"
-                name="date_utilisation"
-                type="date"
-                defaultValue={new Date().toISOString().slice(0, 10)}
-              />
-            </div>
-          </details>
-          <div className="col-span-2">
-            <BoutonPrincipal type="submit">Enregistrer</BoutonPrincipal>
-          </div>
-        </form>
-      </Carte>
+      <FormulaireUtilisation
+        vehicules={
+          vehicules?.map((v) => ({
+            id: v.id,
+            label: v.immatriculation,
+            sousLabel: v.types_vehicules?.nom,
+          })) ?? []
+        }
+        pieces={
+          pieces?.map((p) => ({
+            id: p.id,
+            label: p.nom,
+            sousLabel: libelleTypeVehicule(p.types_vehicules),
+          })) ?? []
+        }
+      />
 
       {utilisations && utilisations.length > 0 && (
         <ul className="space-y-2">
           {utilisations.map((u) => (
-            <li key={u.id} className="flex items-center justify-between px-1 text-sm">
-              <span className="text-neutral-700 dark:text-neutral-300">
-                {u.vehicules?.immatriculation} · {u.pieces?.nom}
+            <li key={u.id} className="flex items-center justify-between gap-3 px-1 text-sm">
+              <span className="min-w-0 text-neutral-700 dark:text-neutral-300">
+                <span className="block truncate">
+                  {u.pieces ? libellePiece(u.pieces) : "Pièce supprimée"}
+                </span>
+                <span className="block truncate text-xs text-neutral-400">
+                  {u.vehicules?.immatriculation}
+                  {u.utilisateur_nom ? ` · ${u.utilisateur_nom}` : ""}
+                </span>
               </span>
-              <span className="text-neutral-400">
+              <span className="shrink-0 text-neutral-400">
                 ×{u.quantite} — {new Date(u.date_utilisation).toLocaleDateString("fr-FR")}
               </span>
             </li>

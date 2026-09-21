@@ -14,18 +14,26 @@
  * { type: 'CLEAR_RUNTIME' } pour purger tout le contenu authentifié mis en cache.
  */
 
-const VERSION = "gpr-v1";
+const VERSION = "gpr-v2";
 const PRECACHE = `${VERSION}-precache`;
 const RUNTIME = `${VERSION}-runtime`;
 const OFFLINE_URL = "/offline";
 
+/*
+ * Coquille uniquement — aucune page métier.
+ *
+ * Ces fichiers sont chargés à l'installation et ne sont JAMAIS purgés. Y placer
+ * /stock, /vehicules, /bons… revenait à graver en cache des pages contenant des
+ * données réelles, qui restaient ensuite consultables hors ligne après une
+ * déconnexion (`networkFirstNavigation` retombe sur `caches.match`, qui balaie
+ * tous les caches, précache compris). Sur une tablette de garage partagée, la
+ * personne suivante voyait donc l'écran de la précédente.
+ *
+ * Les pages métier restent disponibles hors ligne dès qu'elles ont été
+ * consultées, via le cache d'exécution — lui bien vidé à la déconnexion par le
+ * message CLEAR_RUNTIME envoyé depuis /login.
+ */
 const PRECACHE_URLS = [
-  "/",
-  "/stock",
-  "/vehicules",
-  "/bons",
-  "/carburant",
-  "/e",
   "/login",
   OFFLINE_URL,
   "/manifest.webmanifest",

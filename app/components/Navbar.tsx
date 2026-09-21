@@ -5,6 +5,7 @@ import {
   getUtilisateurConnecte,
 } from "@/lib/getUtilisateurConnecte";
 import { deconnexion } from "@/app/login/actions";
+import { libelleRole } from "@/lib/libelles";
 import { Icone } from "@/app/components/icones";
 import { NavLiensDesktop, NavLiensMobile, type LienNav } from "@/app/components/NavLiens";
 
@@ -61,6 +62,14 @@ export default async function Navbar() {
             </p>
           </div>
           <Link
+            href="/mot-de-passe"
+            aria-label="Mon mot de passe"
+            title="Mon mot de passe"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-white"
+          >
+            <Icone nom="cle" size={16} />
+          </Link>
+          <Link
             href="/e"
             aria-label="Comment ça marche"
             title="Comment ça marche"
@@ -87,15 +96,4 @@ export default async function Navbar() {
       <NavLiensMobile liens={liens.filter((l) => l.href !== "/admin/comptes")} />
     </>
   );
-}
-
-function libelleRole(role: string) {
-  const labels: Record<string, string> = {
-    technicien: "Technicien",
-    chef_detachement: "Chef de détachement",
-    chef_garage: "Chef Garage",
-    comptable_matieres: "Comptable Matières",
-    chef_service_technique: "Chef Service Technique",
-  };
-  return labels[role] ?? role;
 }

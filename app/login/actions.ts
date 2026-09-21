@@ -21,6 +21,17 @@ export async function connexion(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    // On distingue le seul cas où réessayer à l'identique ne sert à rien :
+    // sinon, un message unique évite de révéler si l'adresse existe.
+    if (/rate limit|too many/i.test(error.message)) {
+      return { erreur: "Trop de tentatives. Patientez quelques minutes avant de réessayer." };
+    }
+    if (/email not confirmed/i.test(error.message)) {
+      return {
+        erreur:
+          "Ce compte n'est pas encore activé. Demandez à un responsable de vous générer un mot de passe.",
+      };
+    }
     return { erreur: "Email ou mot de passe incorrect." };
   }
 

@@ -194,6 +194,37 @@ export function Astuce({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Explication repliable « Comment ça marche ? ».
+ *
+ * Sert quand une règle mérite d'être expliquée en quelques phrases, sans
+ * occuper l'écran en permanence : le bloc est fermé par défaut, donc il ne
+ * gêne pas les gestes du quotidien, mais il est là pour la personne qui se
+ * demande « pourquoi ? ».
+ */
+export function Aide({
+  titre = "Comment ça marche ?",
+  children,
+}: {
+  titre?: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="group mb-4 rounded-2xl border border-neutral-200/80 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      <summary className="flex cursor-pointer select-none items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+        <span className="text-accent-500">
+          <Icone nom="aide" size={15} />
+        </span>
+        {titre}
+        <span className="ml-auto text-neutral-400 transition group-open:rotate-45">+</span>
+      </summary>
+      <div className="space-y-2.5 border-t border-neutral-100 px-4 py-3.5 text-sm leading-relaxed text-neutral-600 dark:border-neutral-800 dark:text-neutral-400">
+        {children}
+      </div>
+    </details>
+  );
+}
+
 /** Suite d'étapes reliées par des flèches — cycle de vie d'un bon, statut d'un véhicule… */
 export function FluxStatuts({ etapes }: { etapes: string[] }) {
   return (

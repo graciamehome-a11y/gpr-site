@@ -88,13 +88,28 @@ export default async function Explication() {
         </Section>
 
         <Section titre="📦 Stock">
-          <p>Liste des pièces disponibles, avec la quantité par site et un seuil d&apos;alerte (surligné en rouge si atteint).</p>
+          <p>
+            Le stock s&apos;ouvre sur la <strong>liste des sites</strong> : choisissez-en un pour
+            voir tout ce qu&apos;il contient, avec les quantités, les seuils d&apos;alerte et
+            l&apos;historique des mouvements.
+          </p>
+          <p>
+            Sur la page d&apos;un site, vous pouvez saisir une quantité (elle{" "}
+            <strong>remplace</strong> celle enregistrée) et, si vous y êtes autorisé,{" "}
+            <strong>envoyer du stock vers un autre site</strong> : la quantité part du site de
+            départ et s&apos;ajoute à celui d&apos;arrivée.
+          </p>
           <p>
             {vueGlobale
-              ? "Vous pouvez ajouter/mettre à jour une quantité pour n'importe quel site."
+              ? "Vous accédez à tous les sites."
               : utilisateur?.role === "chef_detachement"
-                ? "Vous pouvez ajouter/mettre à jour une quantité pour votre site."
+                ? "Vous accédez à votre site, et pouvez y saisir des quantités et envoyer du stock ailleurs."
                 : "Vous consultez le stock de votre site (lecture seule)."}
+          </p>
+          <p>
+            Une quantité <strong>négative</strong> s&apos;affiche en rouge : cela signifie
+            qu&apos;une pièce a été utilisée sans que sa réception ait été saisie. Corrigez-la en
+            saisissant la quantité réelle.
           </p>
         </Section>
 
@@ -103,11 +118,20 @@ export default async function Explication() {
           <div className="py-1">
             <FluxStatuts etapes={["Arrivé", "En réparation", "Transféré", "Prêt"]} />
           </div>
-          <p>Section « Pièce utilisée » : enregistrer ce qui a été consommé sur un véhicule, avec la date (aujourd&apos;hui par défaut, modifiable).</p>
+          <p>
+            Section « Pièce utilisée » : enregistrer ce qui a été consommé sur un véhicule, avec la
+            date (aujourd&apos;hui par défaut, modifiable). La quantité est{" "}
+            <strong>retirée automatiquement du stock</strong> du site où se trouve le véhicule —
+            vous n&apos;avez rien à décompter vous-même.
+          </p>
         </Section>
 
         <Section titre="📋 Bons">
-          <p>Enregistrer une demande de pièce (véhicule, pièce, quantité). Le statut se change en un tap, directement sur la fiche :</p>
+          <p>
+            Enregistrer une demande de pièce en choisissant le <strong>véhicule réel</strong>
+            (immatriculation et type) : le bon renvoie ainsi à une fiche véhicule précise. Le site
+            du bon est celui du véhicule. Le statut se change en un tap, directement sur la fiche :
+          </p>
           <div className="py-1">
             <FluxStatuts etapes={["En attente", "Validé", "Livré"]} />
           </div>
@@ -123,9 +147,31 @@ export default async function Explication() {
 
         {vueGlobale && (
           <Section titre="👤 Comptes">
-            <p>Réservé à votre rôle : créer un compte envoie une invitation par email à la personne, qui définit elle-même son mot de passe.</p>
+            <p>
+              Réservé à votre rôle. Créer un compte affiche un{" "}
+              <strong>mot de passe temporaire une seule fois</strong> : notez-le et transmettez-le à
+              la personne de vive voix — aucun email n&apos;est envoyé, le compte est utilisable
+              immédiatement.
+            </p>
+            <p>
+              La personne peut ensuite le changer via « Mon mot de passe » (l&apos;icône clé en haut
+              à droite). Si quelqu&apos;un a perdu le sien, ou ne s&apos;est jamais connecté, le
+              bouton « Réinitialiser le mot de passe » sur sa ligne lui en génère un nouveau.
+            </p>
           </Section>
         )}
+
+        <Section titre="🔑 Mon mot de passe">
+          <p>
+            L&apos;icône clé, en haut à droite, permet de changer votre mot de passe à tout moment.
+          </p>
+          <p>
+            Mot de passe oublié ? Le service n&apos;envoie pas encore d&apos;emails : demandez à un
+            responsable (Chef Garage, Comptable Matières ou Chef Service Technique) de vous en
+            générer un nouveau depuis la page « Comptes ». Il vous le transmettra, et vous pourrez
+            le changer ensuite.
+          </p>
+        </Section>
 
         <Section titre="💡 Astuces pour aller vite">
           <ul className="list-disc space-y-1 pl-4">

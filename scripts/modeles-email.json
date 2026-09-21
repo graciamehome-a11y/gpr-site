@@ -1,0 +1,8 @@
+{
+  "mailer_subjects_invite": "Votre accès à GPR",
+  "mailer_templates_invite_content": "<h2>Votre accès à GPR</h2>\n\n<p>Un compte vient d'être créé pour vous sur GPR — Gestion des Pièces &amp; Réparations.</p>\n\n<p>Cliquez sur le lien ci-dessous pour choisir votre mot de passe :</p>\n<p><a href=\"{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=invite\">Choisir mon mot de passe</a></p>\n\n<p>Ce lien est valable une heure et ne peut servir qu'une fois.</p>\n<p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.</p>",
+  "mailer_subjects_recovery": "Réinitialisation de votre mot de passe GPR",
+  "mailer_templates_recovery_content": "<h2>Réinitialisation de votre mot de passe</h2>\n\n<p>Vous avez demandé à changer votre mot de passe GPR.</p>\n\n<p>Cliquez sur le lien ci-dessous pour en choisir un nouveau :</p>\n<p><a href=\"{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=recovery\">Choisir un nouveau mot de passe</a></p>\n\n<p>Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : votre mot de passe reste inchangé.</p>",
+  "mailer_subjects_confirmation": "Confirmez votre adresse email GPR",
+  "mailer_templates_confirmation_content": "<h2>Confirmez votre adresse email</h2>\n\n<p>Cliquez sur le lien ci-dessous pour confirmer votre adresse et activer votre compte GPR.</p>\n<p><a href=\"{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email\">Confirmer mon adresse</a></p>"
+}

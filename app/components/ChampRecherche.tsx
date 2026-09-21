@@ -73,9 +73,17 @@ export default function ChampRecherche({
     return () => document.removeEventListener("mousedown", surClicExterieur);
   }, []);
 
-  const suggestions = requete.trim()
+  // La recherche porte aussi sur le sous-libellé : deux pièces peuvent porter le
+  // même nom pour des véhicules différents (« Amortisseur AR » en CSK et en
+  // LAND-CRUISER), et on veut pouvoir taper « masstech » pour les distinguer.
+  const terme = requete.trim().toLowerCase();
+  const suggestions = terme
     ? options
-        .filter((o) => o.label.toLowerCase().includes(requete.trim().toLowerCase()))
+        .filter(
+          (o) =>
+            o.label.toLowerCase().includes(terme) ||
+            (o.sousLabel?.toLowerCase().includes(terme) ?? false),
+        )
         .slice(0, MAX_SUGGESTIONS)
     : options.slice(0, MAX_SUGGESTIONS);
 

@@ -1,8 +1,16 @@
 "use client";
 
 import { Suspense, useActionState, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { connexion } from "./actions";
+
+/** Messages renvoyés par /auth/confirm quand un lien est inutilisable. */
+const MESSAGES_ERREUR: Record<string, string> = {
+  "lien-invalide": "Ce lien est incomplet. Demandez-en un nouveau à un responsable.",
+  "lien-expire":
+    "Ce lien a déjà été utilisé ou a expiré (ils ne sont valables qu'une heure, et une seule fois). Demandez-en un nouveau à un responsable.",
+};
 
 export default function Login() {
   return (
@@ -16,6 +24,7 @@ function FormulaireConnexion() {
   const [etat, action, enCours] = useActionState(connexion, undefined);
   const params = useSearchParams();
   const suivant = params.get("suivant") ?? "/";
+  const messageLien = MESSAGES_ERREUR[params.get("erreur") ?? ""];
 
   // Sécurité appareil partagé : à l'arrivée sur /login (donc après déconnexion
   // ou expiration de session), on purge le contenu authentifié mis en cache
@@ -85,9 +94,9 @@ function FormulaireConnexion() {
             />
           </div>
 
-          {etat?.erreur && (
+          {(messageLien || etat?.erreur) && (
             <p className="text-sm text-red-600" role="alert">
-              {etat.erreur}
+              {messageLien ?? etat?.erreur}
             </p>
           )}
 
@@ -98,6 +107,13 @@ function FormulaireConnexion() {
           >
             {enCours ? "Connexion…" : "Se connecter"}
           </button>
+
+          <Link
+            href="/mot-de-passe-oublie"
+            className="block pt-1 text-center text-xs text-neutral-500 hover:underline"
+          >
+            Mot de passe oublié ?
+          </Link>
         </form>
 
         <p className="mt-6 text-center text-xs text-neutral-400">

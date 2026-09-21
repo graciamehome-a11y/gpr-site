@@ -5,7 +5,23 @@ import { urlSupabaseServeur } from "@/lib/supabaseUrl";
 // Dans cette version de Next.js, "middleware.ts" a été renommé "proxy.ts"
 // (voir node_modules/next/dist/docs/.../file-conventions/proxy.md).
 
-const ROUTES_PUBLIQUES = ["/login", "/offline", "/api/keep-alive"];
+// Routes accessibles sans session.
+//  - /auth/confirm        : reçoit le lien d'invitation ou de réinitialisation et
+//                           ouvre la session — sans elle, le lien serait redirigé
+//                           vers /login et ne servirait jamais à rien.
+//  - /mot-de-passe        : doit rester joignable AVANT que la session existe, car
+//                           un lien peut livrer sa session dans le fragment d'URL
+//                           (#access_token=…), que le serveur ne voit pas. La page
+//                           affiche elle-même un message clair si le lien est mort.
+//  - /mot-de-passe-oublie : demande de réinitialisation, par définition sans session.
+const ROUTES_PUBLIQUES = [
+  "/login",
+  "/offline",
+  "/api/keep-alive",
+  "/auth/confirm",
+  "/mot-de-passe",
+  "/mot-de-passe-oublie",
+];
 
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

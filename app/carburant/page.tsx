@@ -1,9 +1,8 @@
 import { supabaseServeur } from "@/lib/supabaseServerClient";
-import { getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
-import { ajouterMouvementCarburant } from "./actions";
-import { Astuce, BoutonPrincipal, Carte, Conteneur, EtatVide, Selecteur, SousTitre, TitrePage } from "@/app/components/ui";
+import { accesCarburant, getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
+import { Carte, Conteneur, EtatVide, TitrePage } from "@/app/components/ui";
 import { IlluCarburant } from "@/app/components/illustrations";
-import ChampQuantite from "@/app/components/ChampQuantite";
+import FormulaireCarburant from "./FormulaireCarburant";
 
 type Stock = { id: number; type: string; quantite_litres: number; sites: { nom: string } | null };
 type Mouvement = {
@@ -21,6 +20,23 @@ export default async function Carburant() {
   // Seul le Chef Service Technique opère sur les deux détachements — les autres
   // rôles ayant accès au carburant n'ont que le leur, pas besoin de le sélectionner.
   const choixSiteNecessaire = utilisateur?.role === "chef_service_technique";
+
+  // Le cahier des charges exclut le Garage Central et le Comptable Matières du
+  // suivi carburant. Les RLS les empêchent déjà de lire le moindre solde, mais
+  // la page restait accessible en tapant l'adresse et affichait un formulaire
+  // inopérant : on le dit clairement plutôt que de laisser croire à une panne.
+  if (!accesCarburant(utilisateur)) {
+    return (
+      <Conteneur>
+        <TitrePage titre="Carburant" icone="carburant" />
+        <EtatVide
+          illustration={<IlluCarburant size={132} />}
+          titre="Ce module ne concerne pas votre rôle"
+          description="Le suivi du carburant est réservé aux détachements D1 Nikki et D2 Bessassi, ainsi qu'au Chef Service Technique. Le Garage Central et le Comptable Matières n'y ont pas accès."
+        />
+      </Conteneur>
+    );
+  }
 
   const { data: sites } = await supabase
     .from("sites")
@@ -74,54 +90,11 @@ export default async function Carburant() {
       )}
 
       {sites && sites.length > 0 && (
-        <Carte className="mb-6">
-          <SousTitre>Nouveau mouvement</SousTitre>
-          <div className="mb-3">
-            <Astuce>
-              <strong>Ravitaillement</strong> ajoute des litres, <strong>Consommation</strong> en
-              retire. Le solde du détachement se recalcule tout seul.
-            </Astuce>
-          </div>
-          <form action={ajouterMouvementCarburant} className="grid grid-cols-2 gap-3">
-            {choixSiteNecessaire ? (
-              <div className="col-span-2">
-                <Selecteur label="Détachement" name="site_id" required defaultValue="">
-                  <option value="" disabled>
-                    -- choisir --
-                  </option>
-                  {sites.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.nom}
-                    </option>
-                  ))}
-                </Selecteur>
-              </div>
-            ) : (
-              <input type="hidden" name="site_id" value={utilisateur?.site_id ?? ""} />
-            )}
-            <Selecteur label="Type" name="type" required defaultValue="gasoil">
-              <option value="gasoil">Gasoil</option>
-              <option value="essence">Essence</option>
-            </Selecteur>
-            <Selecteur label="Mouvement" name="mouvement" required defaultValue="ravitaillement">
-              <option value="ravitaillement">Ravitaillement</option>
-              <option value="consommation">Consommation</option>
-            </Selecteur>
-            <div className="col-span-2">
-              <ChampQuantite
-                name="quantite"
-                label="Quantité (litres)"
-                defaut={20}
-                min={1}
-                pas={5}
-                presets={[10, 20, 50, 100]}
-              />
-            </div>
-            <div className="col-span-2">
-              <BoutonPrincipal type="submit">Enregistrer</BoutonPrincipal>
-            </div>
-          </form>
-        </Carte>
+        <FormulaireCarburant
+          sites={sites}
+          siteId={utilisateur?.site_id ?? null}
+          choixSiteNecessaire={choixSiteNecessaire}
+        />
       )}
 
       {mouvements && mouvements.length > 0 && (

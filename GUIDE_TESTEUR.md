@@ -1,93 +1,163 @@
 # Guide testeur — GPR
 
-Ce document donne tout ce qu'il faut pour tester l'application, en local ou en production. Basé sur des recherches de bonnes pratiques (checklist production Supabase — voir sources en bas).
+Tout ce qu'il faut pour tester l'application, en local ou en production.
 
-## ✅ État au 2026-08-23 — déployé
+## État au 21 septembre 2026
 
 - **URL de production** : **https://garage-gracia.vercel.app**
-- Code poussé sur GitHub, branche `srk-work` : https://github.com/graciamehome-a11y/gpr-site/tree/srk-work
-- Correctif RLS **appliqué et vérifié en production** (fuite de lecture publique fermée — confirmé par un test direct après application, voir `AUDIT.md` §0bis)
+- Code sur GitHub, branche `srk-work`
+- RLS appliquées et vérifiées en production
+- **Migration du 21/09 appliquée** en base : journal des mouvements de stock,
+  décrément automatique, transferts entre sites, correction de la faille sur le
+  carburant (`supabase/migrations/20260921000001_securite_et_mouvements_stock.sql`)
+- Détail des corrections et de l'audit : **`AUDIT-2026-09-21.md`**
 
-## Comptes de test — disponibles en production
+> ⚠️ **Le code doit être déployé.** La migration est déjà en base ; si l'ancien
+> code est encore en ligne, le formulaire de stock renverra une erreur.
 
-Les 5 comptes de test existent maintenant sur la vraie base de production (créés avec ton accord, mot de passe unique) :
+## Comptes de test
 
-| Email | Rôle |
-|---|---|
-| `technicien@test.local` | Technicien (D1 Nikki) |
-| `chef.detachement@test.local` | Chef de détachement (D2 Bessassi) |
-| `chef.garage@test.local` | Chef Garage |
-| `comptable.matieres@test.local` | Comptable Matières |
-| `chef.technique@test.local` | Chef Service Technique |
+| Email | Rôle | Mot de passe |
+|---|---|---|
+| `technicien@test.local` | Technicien (D1 Nikki) | `Test1234!` |
+| `chef.detachement@test.local` | Chef de détachement (D2 Bessassi) | `Test1234!` |
+| `chef.garage@test.local` | Chef Garage | `Test1234!` |
+| `comptable.matieres@test.local` | Comptable Matières | `Test1234!` |
+| `chef.technique@test.local` | Chef Service Technique | `Test1234!` |
 
-**Mot de passe pour les 5 : `Test1234!`**
+Ces comptes sont des comptes de démonstration : ils ne doivent pas servir en
+exploitation réelle.
 
-Connexion vérifiée en direct contre la prod (voir §0bis de `AUDIT.md`) : connexion OK, lecture des données OK une fois connecté, toujours bloquée pour un visiteur anonyme.
+## Créer un compte pour une vraie personne
+
+1. Se connecter avec un rôle à vue globale (Chef Garage, Comptable Matières ou
+   Chef Service Technique).
+2. Ouvrir **Comptes**, remplir prénom / nom / email / rôle / site.
+3. **Le mot de passe temporaire s'affiche une seule fois.** Le noter et le
+   transmettre à la personne — de vive voix, ou par un moyen qu'elle seule
+   recevra.
+4. La personne se connecte avec ce mot de passe, puis le change depuis
+   **Mon mot de passe** (icône clé, en haut à droite).
+
+Aucun email n'est envoyé : le compte est utilisable immédiatement. C'est
+volontaire — l'envoi d'emails de ce projet est plafonné à **2 par heure** et ne
+touche pas les adresses externes (voir `AUDIT-2026-09-21.md` §1).
+
+**Quelqu'un est bloqué ?** Le bouton **Réinitialiser le mot de passe** sur sa
+ligne dans la page Comptes lui en génère un nouveau. La page signale aussi les
+comptes qui ne se sont **jamais connectés**.
 
 ## 1. Où tester
 
 | Environnement | URL | Base de données |
 |---|---|---|
-| **Production** | https://garage-gracia.vercel.app | Vraie base cloud Supabase |
-| Local (`npm run dev`) | http://localhost:3000 | Stack Docker local (données de test uniquement) |
-| Local (Docker) | http://localhost:3001 | Idem |
+| **Production** | https://garage-gracia.vercel.app | Base cloud Supabase |
+| Local (`npm run dev`) | http://localhost:3000 | Stack Docker local — **à démarrer** (`supabase start`) |
+| Local (build de prod) | http://localhost:3100 | Base cloud, si `.env.development.local` est retiré |
 
-Les mêmes 5 comptes (§ ci-dessus) fonctionnent partout. Ce que chaque rôle doit voir :
+⚠️ `.env.development.local` est prioritaire sur `.env.local` en développement : il
+pointe vers le stack local. Si celui-ci n'est pas démarré, `npm run dev` échoue
+en `ECONNREFUSED`. Pour tester contre la vraie base en local, retirez ce fichier.
+
+## 2. Ce que chaque rôle doit voir
 
 | Rôle | Doit voir |
 |---|---|
 | Technicien | Uniquement D1 Nikki |
 | Chef de détachement | Uniquement D2 Bessassi |
-| Chef Garage | Tous les sites, PAS le carburant |
-| Comptable Matières | Tous les sites, PAS le carburant |
+| Chef Garage | Tous les sites, **pas** le carburant |
+| Comptable Matières | Tous les sites, **pas** le carburant |
 | Chef Service Technique | Tous les sites + carburant des 2 détachements |
 
-## 2. Scénarios à tester (checklist)
+## 3. Scénarios à tester
 
 ### Authentification
-- [ ] Accès à `/` sans connexion → redirige vers `/login`
-- [ ] Mauvais mot de passe → message d'erreur clair, pas de détail technique exposé
-- [ ] Connexion réussie → redirige vers la page demandée initialement
-- [ ] Déconnexion (bouton « Quitter ») → retour à `/login`, `/` redevient inaccessible
 
-### Permissions par rôle (le plus important)
-- [ ] Connecté en `technicien@test.local` : le Stock, les Véhicules et les Bons n'affichent que D1 Nikki
-- [ ] Connecté en `chef.garage@test.local` : voit tous les sites, mais le lien Carburant n'apparaît pas dans la navigation
-- [ ] Connecté en `chef.technique@test.local` : voit le carburant des deux détachements
-- [ ] Le lien « Comptes » (`/admin/comptes`) n'apparaît que pour Chef Garage / Comptable Matières / Chef Service Technique
-- [ ] Un technicien qui tape directement `/admin/comptes` dans l'URL est bien redirigé (pas juste caché dans le menu)
+- [ ] `/` sans connexion → redirige vers `/login`
+- [ ] Mauvais mot de passe → message clair, aucun détail technique
+- [ ] Connexion réussie → redirige vers la page demandée
+- [ ] Déconnexion → retour à `/login`, `/` redevient inaccessible
+- [ ] **Créer un compte depuis Comptes → le mot de passe temporaire s'affiche
+      → se déconnecter → se connecter avec ce mot de passe, sans aucun email**
+- [ ] **Réinitialiser le mot de passe d'un compte existant → le nouveau
+      fonctionne**
+- [ ] **Mon mot de passe (icône clé) → changer son mot de passe → se
+      reconnecter avec**
+- [ ] « Mot de passe oublié ? » → la page explique la démarche (contacter un
+      responsable), **sans demander d'adresse email**
+- [ ] Un lien `/auth/confirm` sans jeton → retour à `/login` avec un message
+      expliquant que le lien est inutilisable
 
-### Modules fonctionnels
-- [ ] **Stock** : ajouter une quantité pour une pièce/site, vérifier qu'elle apparaît et que le seuil d'alerte surligne en rouge si atteint
-- [ ] **Véhicules** : enregistrer une arrivée, changer son statut en tapant directement sur les boutons (Arrivé → En réparation → Transféré → Prêt), enregistrer une pièce utilisée
-- [ ] **Bons** : créer une demande, changer son statut en un tap
-- [ ] **Carburant** : enregistrer un ravitaillement, vérifier que le solde affiché augmente ; enregistrer une consommation, vérifier qu'il diminue
+### Stock — le point le plus important
 
-### UX mobile
-- [ ] Ouvrir sur un téléphone (ou réduire la fenêtre du navigateur) : la barre de navigation passe en bas de l'écran avec des icônes
-- [ ] Champ « Pièce » : taper 2-3 lettres, vérifier que la liste se filtre sans scroller un long menu
-- [ ] Après avoir choisi une pièce une fois, elle réapparaît en raccourci (chip) juste en dessous au prochain passage sur ce formulaire
+- [ ] `/stock` affiche une **liste de sites**, pas un grand tableau
+- [ ] Cliquer sur un site → son stock détaillé, avec seuils, alertes et
+      historique des mouvements
+- [ ] Le catalogue complet est consultable sous « Tout le catalogue »
+- [ ] Saisir une quantité → elle remplace la précédente, et une ligne
+      apparaît dans « Derniers mouvements »
+- [ ] **Envoyer du stock vers un autre site → la quantité baisse à la source,
+      monte à la destination, et les 2 mouvements apparaissent**
+- [ ] **Aller dans Véhicules, déclarer une pièce utilisée → revenir dans Stock :
+      la quantité a baissé du même nombre**
+- [ ] Déclarer plus de pièces qu'il n'y en a → la quantité passe en négatif,
+      affichée en rouge « à corriger ». **Rien n'est bloqué.**
+- [ ] Connecté en technicien : `/stock` ne montre que D1 Nikki ; taper l'URL
+      d'un autre site renvoie une 404
 
-### Page d'aide
-- [ ] Cliquer sur le `?` en haut à droite → `/e` s'affiche avec un résumé adapté au rôle connecté
+### Permissions
 
-## 3. Ce qui n'est PAS encore couvert (à ne pas signaler comme bug)
+- [ ] `technicien@test.local` : Stock, Véhicules et Bons ne montrent que D1 Nikki
+- [ ] `chef.garage@test.local` : tous les sites, mais pas de lien Carburant — et
+      `/carburant` tapé à la main explique que le module ne le concerne pas
+- [ ] `chef.technique@test.local` : carburant des deux détachements
+- [ ] « Comptes » n'apparaît que pour les rôles à vue globale ; un technicien
+      qui tape `/admin/comptes` est redirigé
 
-- Pas de récupération de mot de passe oublié (« mot de passe oublié ») — pas encore implémenté.
-- Pas de validation de schéma poussée sur les formulaires (ex. quantité négative bloquée côté UI mais pas forcément avec un message explicite).
-- Le module Stock affiche les quantités mais pas encore d'historique des modifications.
-- La base de production est actuellement presque vide (`stocks`, `vehicules`, `demandes_pieces`, `carburant_stock` n'ont aucune ligne) — normal, aucune donnée réelle n'a encore été saisie (cf. cahier des charges §6, qui interdit la saisie de données réelles avant validation de l'hébergement par le client).
+### Bons, Véhicules, Carburant
 
-## 4. Variables d'environnement — état sur Vercel (projet `garage-gracia`)
+- [ ] **Bons** : le véhicule se choisit par immatriculation réelle, avec son
+      type ; le site n'est plus demandé (il découle du véhicule)
+- [ ] Bons : changer le statut en un tap
+- [ ] Véhicules : arrivée, puis statuts Arrivé → En réparation → Transféré → Prêt
+- [ ] Carburant : ravitaillement → le solde monte ; consommation → il baisse
+- [ ] Une pièce répétée (« Amortisseur AR ») affiche bien **son** véhicule, et
+      taper « masstech » dans le champ la trouve
 
-| Variable | Statut |
+### Mobile / PWA
+
+- [ ] Sur téléphone : barre de navigation en bas, avec icônes
+- [ ] Champ « Pièce » : taper 2-3 lettres filtre la liste
+- [ ] Le dernier choix réapparaît en raccourci au formulaire suivant
+- [ ] **Se déconnecter, puis rouvrir hors ligne : les écrans de la personne
+      précédente ne doivent plus s'afficher**
+
+## 4. Scripts de vérification
+
+À lancer depuis la racine du projet :
+
+| Commande | Ce qu'elle vérifie |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ définie |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ définie |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ définie — `/admin/comptes` fonctionnel en prod |
+| `node scripts/verifier-migration.mjs` | La migration est bien appliquée en base |
+| `node scripts/tester-migration.mjs` | 29 tests des fonctions de stock — **dans une transaction annulée**, rien n'est modifié |
+| `node scripts/tester-app.mjs` | 34 tests de l'application : pages, permissions, signatures des fonctions (l'app doit tourner sur le port 3100) |
+| `node scripts/diagnostic-securite.mjs` | La faille du carburant est bien fermée |
+| `node scripts/diagnostic-schema.mjs` | Colonnes et fonctions réellement présentes en base |
 
-## Sources (bonnes pratiques utilisées pour ce guide)
+`tester-migration.mjs` et `verifier-migration.mjs` ont besoin d'un jeton
+d'accès Supabase dans `SUPABASE_ACCESS_TOKEN` (jamais à écrire dans un fichier
+du dépôt).
 
-- [Supabase — Production Checklist](https://supabase.com/docs/guides/deployment/going-into-prod)
-- [Supabase RLS Best Practices — makerkit.dev](https://makerkit.dev/blog/tutorials/supabase-rls-best-practices)
-- [Bastion — Supabase Security Best Practices for Production Apps](https://bastion.tech/blog/supabase-security-best-practices/)
+## 5. Ce qui n'est PAS encore couvert
+
+- **Aucun email n'est envoyé** — c'est un choix assumé pour l'instant. La
+  création de compte se fait par mot de passe temporaire, et la récupération
+  d'accès passe par un responsable. La page « Mot de passe oublié » explique
+  cette démarche au lieu de promettre un email. Voir `AUDIT-2026-09-21.md` §1
+  pour activer l'envoi plus tard (Resend ou Brevo).
+- Pas d'historique des modifications de véhicules ou de bons (seul le stock a
+  son journal).
+- Marquer un bon « Livré » ne décrémente pas le stock : seuls « Pièce utilisée »
+  et les envois entre sites le font.
+- Pas de tests automatisés dans une CI (les scripts ci-dessus s'exécutent à la
+  demande).

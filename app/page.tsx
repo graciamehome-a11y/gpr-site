@@ -157,14 +157,14 @@ function etapesDemarrage(role: string): string[] {
       ];
     case "chef_detachement":
       return [
-        "Renseignez les quantités de pièces de votre site dans Stock, avec un seuil d'alerte.",
-        "Suivez les véhicules et les bons de votre détachement.",
-        "Gardez un œil sur le solde de carburant.",
+        "Ouvrez Stock, touchez votre site, et renseignez les quantités avec un seuil d'alerte.",
+        "Enregistrez les arrivées de véhicules, puis les pièces utilisées : le stock se décompte tout seul.",
+        "Envoyez du stock à un autre site depuis la page de votre site, si besoin.",
       ];
     case "chef_garage":
       return [
-        "Créez les comptes des techniciens et chefs (bouton Comptes).",
-        "Mettez à jour le stock de pièces, site par site, avec les seuils d'alerte.",
+        "Créez les comptes de vos équipes (bouton Comptes) : un mot de passe temporaire s'affiche, transmettez-le.",
+        "Ouvrez Stock, site par site, pour renseigner les quantités et les seuils d'alerte.",
         "Traitez les bons entrants : validez, refusez ou marquez livré.",
       ];
     case "comptable_matieres":
