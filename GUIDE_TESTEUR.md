@@ -2,18 +2,34 @@
 
 Tout ce qu'il faut pour tester l'application, en local ou en production.
 
-## État au 21 septembre 2026
+## État au 21 septembre 2026 — à jour et vérifié en production
 
-- **URL de production** : **https://garage-gracia.vercel.app**
-- Code sur GitHub, branche `srk-work`
+- **URL de production** : **https://garage-gracia.vercel.app** — déployée
+  (commit `3981d65`), vérifiée par 39 tests automatisés + 9 tests du parcours
+  de création de compte
+- Code sur GitHub, branches `main` et `srk-work`
 - RLS appliquées et vérifiées en production
 - **Migration du 21/09 appliquée** en base : journal des mouvements de stock,
   décrément automatique, transferts entre sites, correction de la faille sur le
   carburant (`supabase/migrations/20260921000001_securite_et_mouvements_stock.sql`)
 - Détail des corrections et de l'audit : **`AUDIT-2026-09-21.md`**
 
-> ⚠️ **Le code doit être déployé.** La migration est déjà en base ; si l'ancien
-> code est encore en ligne, le formulaire de stock renverra une erreur.
+### Déployer une modification
+
+**L'intégration Git n'est pas connectée** : pousser sur GitHub ne déclenche
+aucun déploiement. En attendant qu'elle soit rétablie (voir
+`AUDIT-2026-09-21.md` §8), chaque mise en production se fait à la main :
+
+```bash
+npx vercel --prod
+```
+
+Puis vérifier :
+
+```bash
+URL_APP=https://garage-gracia.vercel.app node scripts/tester-app.mjs
+URL_APP=https://garage-gracia.vercel.app node scripts/tester-creation-compte.mjs
+```
 
 ## Comptes de test
 
@@ -140,9 +156,13 @@ en `ECONNREFUSED`. Pour tester contre la vraie base en local, retirez ce fichier
 |---|---|
 | `node scripts/verifier-migration.mjs` | La migration est bien appliquée en base |
 | `node scripts/tester-migration.mjs` | 29 tests des fonctions de stock — **dans une transaction annulée**, rien n'est modifié |
-| `node scripts/tester-app.mjs` | 34 tests de l'application : pages, permissions, signatures des fonctions (l'app doit tourner sur le port 3100) |
+| `node scripts/tester-app.mjs` | 39 tests : pages, permissions, explications, signatures des fonctions. Sans `URL_APP`, teste le port 3100 ; avec `URL_APP=https://…`, teste la production |
+| `node scripts/tester-creation-compte.mjs` | 9 tests du parcours complet : créer un compte, se connecter aussitôt, changer son mot de passe |
 | `node scripts/diagnostic-securite.mjs` | La faille du carburant est bien fermée |
 | `node scripts/diagnostic-schema.mjs` | Colonnes et fonctions réellement présentes en base |
+
+Les scripts qui créent des données (tests de compte) **nettoient derrière eux**,
+même en cas d'erreur.
 
 `tester-migration.mjs` et `verifier-migration.mjs` ont besoin d'un jeton
 d'accès Supabase dans `SUPABASE_ACCESS_TOKEN` (jamais à écrire dans un fichier
