@@ -2,17 +2,45 @@
 
 Tout ce qu'il faut pour tester l'application, en local ou en production.
 
-## État au 21 septembre 2026 — à jour et vérifié en production
+## État au 22 septembre 2026 — base remise à zéro, prête pour la saisie réelle
 
-- **URL de production** : **https://garage-gracia.vercel.app** — déployée
-  (commit `3981d65`), vérifiée par 39 tests automatisés + 9 tests du parcours
-  de création de compte
+- **URL de production** : **https://garage-gracia.vercel.app**
+- **La base ne contient plus aucune donnée métier** : plus de pièces, plus de
+  types de véhicules, plus de véhicules, plus de stock. C'est volontaire — tout
+  est à saisir depuis l'application, en suivant le parcours de démarrage.
+- Ce qui reste : les **4 sites**, les **5 rôles** et les **4 comptes réels**
+  (dont `odjoumitchivictoradebola@gmail.com`, administrateur).
+- Une **sauvegarde complète** de l'état précédent a été faite avant la remise à
+  zéro : `C:\Users\DELL\gpr-site-sauvegardes\2026-09-22T17-54-06\`.
+  ⚠️ Ce dossier contient des adresses email — ne pas le partager ni le versionner.
+- Vérifié après remise à zéro : 12/12 sur la production (parcours de démarrage,
+  pages vides, renvois vers la bonne étape suivante).
 - Code sur GitHub, branches `main` et `srk-work`
-- RLS appliquées et vérifiées en production
-- **Migration du 21/09 appliquée** en base : journal des mouvements de stock,
-  décrément automatique, transferts entre sites, correction de la faille sur le
-  carburant (`supabase/migrations/20260921000001_securite_et_mouvements_stock.sql`)
-- Détail des corrections et de l'audit : **`AUDIT-2026-09-21.md`**
+
+### Migrations appliquées en base
+
+| Fichier | Objet |
+|---|---|
+| `20260921000001_securite_et_mouvements_stock.sql` | Journal des mouvements, décrément automatique, transferts entre sites, correction de la faille carburant |
+| `20260922000001_catalogue_modifiable.sql` | Écriture du catalogue (pièces et types de véhicules) + unicité |
+| `20260922000002_mot_de_passe_personnel.sql` | Choix obligatoire d'un mot de passe personnel à la première connexion |
+
+### La base est vide : par où commencer
+
+1. Se connecter avec un compte à vue globale.
+2. L'accueil affiche **« Pour démarrer »** : suivez les 5 étapes dans l'ordre.
+3. La première est **Créer vos types de véhicules** (ou **Gérer le catalogue**
+   depuis la page Stock). Sans type, aucun véhicule ne peut être enregistré —
+   les étapes suivantes sont donc grisées tant que ce n'est pas fait.
+
+### Mot de passe à la première connexion
+
+Quand un administrateur crée un compte, il génère un mot de passe temporaire.
+**La personne est obligée d'en choisir un personnel à sa première connexion** —
+tant qu'elle ne l'a pas fait, l'application ne la laisse pas aller ailleurs.
+C'est voulu : le mot de passe provisoire est connu de l'administrateur.
+
+Ce mot de passe personnel devient celui de toutes les connexions suivantes.
 
 ### Déployer une modification
 
@@ -31,18 +59,34 @@ URL_APP=https://garage-gracia.vercel.app node scripts/tester-app.mjs
 URL_APP=https://garage-gracia.vercel.app node scripts/tester-creation-compte.mjs
 ```
 
-## Comptes de test
+## Comptes
 
-| Email | Rôle | Mot de passe |
-|---|---|---|
-| `technicien@test.local` | Technicien (D1 Nikki) | `Test1234!` |
-| `chef.detachement@test.local` | Chef de détachement (D2 Bessassi) | `Test1234!` |
-| `chef.garage@test.local` | Chef Garage | `Test1234!` |
-| `comptable.matieres@test.local` | Comptable Matières | `Test1234!` |
-| `chef.technique@test.local` | Chef Service Technique | `Test1234!` |
+**Les 5 comptes de test `@test.local` ont été supprimés** lors de la remise à
+zéro : ils étaient créés avec un mot de passe public, ce qui n'a plus sa place
+sur une base d'exploitation.
 
-Ces comptes sont des comptes de démonstration : ils ne doivent pas servir en
-exploitation réelle.
+Comptes restants en production :
+
+| Email | Rôle |
+|---|---|
+| `graciamehome@gmail.com` | Chef Service Technique |
+| `graciame@gmail.com` | Technicien (D1 Nikki) |
+| `megras32@gmail.com` | Chef de détachement |
+| `odjoumitchivictoradebola@gmail.com` | Chef Service Technique |
+
+Les scripts de test (`tester-app.mjs`, `tester-catalogue.mjs`) s'appuient sur
+les comptes `@test.local`. **Ils ne fonctionnent donc plus sur la production.**
+Pour les relancer, il faut d'abord recréer ces comptes — ce qui n'est à faire
+que sur un environnement de test, jamais sur la base d'exploitation :
+
+```bash
+SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… node scripts/seed-comptes-test.mjs
+```
+
+En revanche, `tester-creation-compte.mjs` (qui crée puis supprime son propre
+compte) et `verifier-demarrage.mjs` (qui ouvre une session sur un compte
+existant sans rien modifier) **restent utilisables tels quels sur la
+production**.
 
 ## Créer un compte pour une vraie personne
 
@@ -154,15 +198,31 @@ en `ECONNREFUSED`. Pour tester contre la vraie base en local, retirez ce fichier
 
 | Commande | Ce qu'elle vérifie |
 |---|---|
-| `node scripts/verifier-migration.mjs` | La migration est bien appliquée en base |
+| `node scripts/verifier-demarrage.mjs` | 12 tests du démarrage à vide sur la production — utilisable dès maintenant |
+| `node scripts/tester-creation-compte.mjs` | 12 tests : créer un compte, se connecter aussitôt, être obligé de choisir son mot de passe, puis accéder à l'application |
+| `node scripts/verifier-migration.mjs` | Les migrations sont bien appliquées en base |
 | `node scripts/tester-migration.mjs` | 29 tests des fonctions de stock — **dans une transaction annulée**, rien n'est modifié |
-| `node scripts/tester-app.mjs` | 39 tests : pages, permissions, explications, signatures des fonctions. Sans `URL_APP`, teste le port 3100 ; avec `URL_APP=https://…`, teste la production |
-| `node scripts/tester-creation-compte.mjs` | 9 tests du parcours complet : créer un compte, se connecter aussitôt, changer son mot de passe |
+| `node scripts/tester-app.mjs` | 46 tests : pages, permissions, catalogue, explications. **Nécessite les comptes de test** |
+| `node scripts/tester-catalogue.mjs` | 9 tests du catalogue. **Nécessite les comptes de test** |
 | `node scripts/diagnostic-securite.mjs` | La faille du carburant est bien fermée |
-| `node scripts/diagnostic-schema.mjs` | Colonnes et fonctions réellement présentes en base |
+| `node scripts/inventaire-donnees.mjs` | Ce que contient la base, table par table |
 
-Les scripts qui créent des données (tests de compte) **nettoient derrière eux**,
-même en cas d'erreur.
+Sans `URL_APP`, ces scripts visent `http://localhost:3100` ; avec
+`URL_APP=https://garage-gracia.vercel.app`, ils visent la production.
+
+### Sauvegarder et remettre à zéro
+
+```bash
+node scripts/sauvegarder-donnees.mjs              # copie tout hors du dépôt
+node scripts/remettre-a-zero.mjs                  # simulation : montre ce qui partirait
+node scripts/remettre-a-zero.mjs --confirmer      # exécution réelle
+```
+
+La remise à zéro **conserve** les sites, les rôles et les comptes réels, et
+supprime toutes les données métier, le catalogue et les comptes `@test.local`.
+
+Les scripts qui créent des données **nettoient derrière eux**, même en cas
+d'erreur.
 
 `tester-migration.mjs` et `verifier-migration.mjs` ont besoin d'un jeton
 d'accès Supabase dans `SUPABASE_ACCESS_TOKEN` (jamais à écrire dans un fichier
