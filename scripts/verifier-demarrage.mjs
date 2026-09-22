@@ -43,15 +43,10 @@ if (errOtp) {
   process.exit(1);
 }
 
+// La connexion par mot de passe n'est pas possible ici (nous ne les
+// connaissons pas) : on fabrique donc directement l'en-tête de cookie attendu
+// par @supabase/ssr, à partir de la session obtenue par le lien magique.
 const jar = new Map();
-const sessionne = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-  cookies: {
-    getAll: () => [],
-    setAll: () => {},
-  },
-});
-// On rejoue la connexion par mot de passe n'étant pas possible, on fabrique
-// directement l'en-tête de cookie à partir de la session obtenue.
 const nomCookie = `sb-${new URL(env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0]}-auth-token`;
 const valeur = "base64-" + Buffer.from(JSON.stringify(session.session)).toString("base64url");
 jar.set(nomCookie, valeur);
