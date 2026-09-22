@@ -79,6 +79,24 @@ export default async function Stock() {
         </p>
       )}
 
+      {vueGlobale && (
+        <Link href="/catalogue" className="mb-4 block">
+          <Carte className="flex items-center gap-3 transition hover:border-accent-300 active:scale-[0.99] dark:hover:border-accent-800">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-600 dark:bg-accent-950 dark:text-accent-300">
+              <Icone nom="stock" size={19} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-medium text-neutral-900 dark:text-white">
+                Gérer le catalogue
+              </span>
+              <span className="block text-xs text-neutral-500">
+                Ajouter ou corriger les pièces et les types de véhicules
+              </span>
+            </span>
+          </Carte>
+        </Link>
+      )}
+
       <Aide titre="Comment ça marche ?">
         <p>
           Le stock est rangé <strong>par site</strong> : chaque site a ses propres quantités, même

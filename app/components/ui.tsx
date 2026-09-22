@@ -195,6 +195,30 @@ export function Astuce({ children }: { children: ReactNode }) {
 }
 
 /**
+ * Retour d'un formulaire : erreur en rouge, succès en vert.
+ *
+ * Un formulaire qui échoue sans rien dire est la pire des situations — on
+ * resaisit, on croit avoir mal fait, on recommence. Ce composant garantit qu'il
+ * y a toujours une phrase affichée, et `role="alert"` fait annoncer l'erreur
+ * par les lecteurs d'écran.
+ */
+export function MessageFormulaire({ erreur, succes }: { erreur?: string; succes?: string }) {
+  if (!erreur && !succes) return null;
+  return (
+    <p
+      role={erreur ? "alert" : "status"}
+      className={`mt-3 rounded-xl px-3.5 py-2.5 text-sm ${
+        erreur
+          ? "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400"
+          : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+      }`}
+    >
+      {erreur ?? succes}
+    </p>
+  );
+}
+
+/**
  * Explication repliable « Comment ça marche ? ».
  *
  * Sert quand une règle mérite d'être expliquée en quelques phrases, sans

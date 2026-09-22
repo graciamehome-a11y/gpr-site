@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Astuce, BoutonPrincipal, Carte, Champ, SousTitre } from "@/app/components/ui";
 import ChampRecherche from "@/app/components/ChampRecherche";
+import ChampPiece from "@/app/components/ChampPiece";
 import ChampQuantite from "@/app/components/ChampQuantite";
 import { ajouterUtilisation } from "./actions";
 
@@ -39,7 +40,7 @@ export default function FormulaireUtilisation({
           />
         </div>
         <div className="col-span-2">
-          <ChampRecherche
+          <ChampPiece
             label="Pièce"
             name="piece_id"
             required

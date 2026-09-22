@@ -16,7 +16,7 @@ import {
   Stat,
 } from "@/app/components/ui";
 import { Icone, type NomIcone } from "@/app/components/icones";
-import { IlluReseau } from "@/app/components/illustrations";
+import Onboarding from "@/app/components/Onboarding";
 
 /* ------------------------------------------------------------------ *
  *  Tableau de bord — page d'accueil, adaptée au rôle de la personne.
@@ -147,43 +147,6 @@ function raccourcisPourRole(role: string): { href: string; icone: NomIcone; titr
   }
 }
 
-function etapesDemarrage(role: string): string[] {
-  switch (role) {
-    case "technicien":
-      return [
-        "Enregistrez l'arrivée d'un véhicule dans Véhicules.",
-        "Notez les pièces posées au fur et à mesure de la réparation.",
-        "Créez un bon dès qu'une pièce manque, et suivez le carburant du détachement.",
-      ];
-    case "chef_detachement":
-      return [
-        "Ouvrez Stock, touchez votre site, et renseignez les quantités avec un seuil d'alerte.",
-        "Enregistrez les arrivées de véhicules, puis les pièces utilisées : le stock se décompte tout seul.",
-        "Envoyez du stock à un autre site depuis la page de votre site, si besoin.",
-      ];
-    case "chef_garage":
-      return [
-        "Créez les comptes de vos équipes (bouton Comptes) : un mot de passe temporaire s'affiche, transmettez-le.",
-        "Ouvrez Stock, site par site, pour renseigner les quantités et les seuils d'alerte.",
-        "Traitez les bons entrants : validez, refusez ou marquez livré.",
-      ];
-    case "comptable_matieres":
-      return [
-        "Vérifiez le stock de pièces sur l'ensemble des sites.",
-        "Suivez les bons livrés et les pièces consommées pour vos points périodiques.",
-        "Créez les comptes si besoin.",
-      ];
-    case "chef_service_technique":
-      return [
-        "Parcourez la vue d'ensemble : pièces, véhicules, bons, carburant des deux détachements.",
-        "Traitez les bons en attente.",
-        "Créez ou ajustez les comptes des utilisateurs.",
-      ];
-    default:
-      return ["Explorez les modules depuis les raccourcis ci-dessous."];
-  }
-}
-
 function compterPar<T>(lignes: T[], cle: (l: T) => string): StatutCompte {
   return lignes.reduce<StatutCompte>((acc, l) => {
     const k = cle(l);
@@ -207,7 +170,9 @@ export default async function TableauDeBord() {
   const vueGlobale = aVueGlobale(utilisateur);
   const carburantVisible = accesCarburant(utilisateur);
 
-  const [stocksRes, vehiculesRes, bonsRes, utilisationsRes] = await Promise.all([
+  const [typesRes, piecesRes, stocksRes, vehiculesRes, bonsRes, utilisationsRes] = await Promise.all([
+    supabase.from("types_vehicules").select("id", { count: "exact", head: true }),
+    supabase.from("pieces").select("id", { count: "exact", head: true }),
     supabase
       .from("stocks")
       .select("quantite, seuil_alerte, pieces(nom), sites(nom)")
@@ -259,12 +224,13 @@ export default async function TableauDeBord() {
   const enReparation = vehiculesParStatut["en_reparation"] ?? 0;
   const carburantTotal = carburant.reduce((s, c) => s + Number(c.quantite_litres || 0), 0);
   const comptable = utilisateur.role === "comptable_matieres";
-  const toutVide =
-    stocks.length === 0 &&
-    vehicules.length === 0 &&
-    bons.length === 0 &&
-    utilisations.length === 0 &&
-    carburant.length === 0;
+  const etatDemarrage = {
+    types: typesRes.count ?? 0,
+    pieces: piecesRes.count ?? 0,
+    stocks: stocks.length,
+    vehicules: vehicules.length,
+    bons: bons.length,
+  };
 
   const dateJour = new Date().toLocaleDateString("fr-FR", {
     weekday: "long",
@@ -305,23 +271,7 @@ export default async function TableauDeBord() {
         </p>
       </header>
 
-      {toutVide && (
-        <Section titre="Pour démarrer" icone="aide">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <IlluReseau size={132} className="mx-auto shrink-0 sm:mx-0" />
-            <ol className="flex-1 space-y-2.5">
-              {etapesDemarrage(utilisateur.role).map((etape, i) => (
-                <li key={i} className="flex gap-2.5 text-sm text-neutral-700 dark:text-neutral-300">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-100 text-[11px] font-semibold text-accent-700 dark:bg-accent-950 dark:text-accent-300">
-                    {i + 1}
-                  </span>
-                  {etape}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </Section>
-      )}
+      <Onboarding etat={etatDemarrage} role={utilisateur.role} />
 
       <GrilleStats>
         <Stat

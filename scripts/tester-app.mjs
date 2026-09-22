@@ -171,6 +171,69 @@ console.log("\n=== Chef Garage (vue globale) ===");
 }
 
 
+// -------------------------------------------------- catalogue et démarrage
+console.log("\n=== Catalogue et onboarding ===");
+{
+  const { cookie } = await sessionPour("chef.garage@test.local", "Test1234!");
+
+  const catalogue = await page("/catalogue", cookie);
+  verifier("/catalogue accessible à un rôle à vue globale", catalogue.statut === 200, `HTTP ${catalogue.statut}`);
+  verifier(
+    "/catalogue liste les types et les pièces",
+    /Types de véhicules/.test(catalogue.corps) && /Ajouter une pièce/.test(catalogue.corps),
+    "",
+  );
+  verifier(
+    "/catalogue regroupe les pièces par véhicule",
+    /Amortisseur|CSK|SHACMAN|Génériques/.test(catalogue.corps),
+    "",
+  );
+  verifier(
+    "/catalogue explique la marche à suivre",
+    /À quoi sert le catalogue/.test(catalogue.corps),
+    "",
+  );
+
+  const { data: sites } = await admin.from("sites").select("id").order("id");
+  const siteStock = await page(`/stock/${sites[0].id}`, cookie);
+  verifier(
+    "le formulaire de stock filtre les pièces par véhicule",
+    /Véhicule concerné/.test(siteStock.corps) && /Tous les véhicules/.test(siteStock.corps),
+    "",
+  );
+
+  // Le parcours de démarrage s'affiche tant que tout n'est pas amorcé, et
+  // s'efface ensuite. On calcule donc l'attendu à partir de la base réelle,
+  // pour que ce test reste valable avant ET après une remise à zéro.
+  const [types, pieces, stocks, vehicules, bons] = await Promise.all([
+    admin.from("types_vehicules").select("*", { count: "exact", head: true }),
+    admin.from("pieces").select("*", { count: "exact", head: true }),
+    admin.from("stocks").select("*", { count: "exact", head: true }),
+    admin.from("vehicules").select("*", { count: "exact", head: true }),
+    admin.from("demandes_pieces").select("*", { count: "exact", head: true }),
+  ]);
+  const amorce =
+    types.count > 0 && pieces.count > 0 && stocks.count > 0 && vehicules.count > 0 && bons.count > 0;
+
+  const accueil = await page("/", cookie);
+  const parcoursAffiche = /Pour démarrer/.test(accueil.corps);
+  verifier(
+    amorce
+      ? "le parcours de démarrage s'efface une fois tout amorcé"
+      : "le parcours de démarrage s'affiche sur une base non amorcée",
+    amorce ? !parcoursAffiche : parcoursAffiche,
+    `types=${types.count} pieces=${pieces.count} stocks=${stocks.count} vehicules=${vehicules.count} bons=${bons.count}`,
+  );
+
+  const technicien = await sessionPour("technicien@test.local", "Test1234!");
+  const catalogueInterdit = await page("/catalogue", technicien.cookie);
+  verifier(
+    "catalogue refusé à un technicien",
+    catalogueInterdit.statut === 307,
+    `HTTP ${catalogueInterdit.statut}`,
+  );
+}
+
 // --------------------------------------------------- explications à l'écran
 // Chaque page métier doit dire à quoi elle sert : le client est non technique,
 // et une règle non expliquée devient une question au téléphone.

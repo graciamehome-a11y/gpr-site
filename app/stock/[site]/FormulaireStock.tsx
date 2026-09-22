@@ -2,34 +2,15 @@
 
 import { useActionState } from "react";
 import { Astuce, BoutonPrincipal, Carte, Selecteur, SousTitre } from "@/app/components/ui";
-import ChampRecherche from "@/app/components/ChampRecherche";
+import ChampPiece from "@/app/components/ChampPiece";
 import ChampQuantite from "@/app/components/ChampQuantite";
+import { MessageFormulaire } from "@/app/components/ui";
 import { definirStock, transfererStock, type EtatStock } from "../actions";
 
 type Option = { id: number; label: string; sousLabel?: string };
 
 function Message({ etat }: { etat: EtatStock }) {
-  if (etat?.erreur) {
-    return (
-      <p
-        className="mt-3 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700 dark:bg-red-950 dark:text-red-400"
-        role="alert"
-      >
-        {etat.erreur}
-      </p>
-    );
-  }
-  if (etat?.succes) {
-    return (
-      <p
-        className="mt-3 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
-        role="status"
-      >
-        {etat.succes}
-      </p>
-    );
-  }
-  return null;
+  return <MessageFormulaire erreur={etat?.erreur} succes={etat?.succes} />;
 }
 
 export default function FormulaireStock({
@@ -64,7 +45,7 @@ export default function FormulaireStock({
         <form action={actionStock} className="grid grid-cols-2 gap-3">
           <input type="hidden" name="site_id" value={siteId} />
           <div className="col-span-2">
-            <ChampRecherche
+            <ChampPiece
               label="Pièce"
               name="piece_id"
               required
@@ -95,7 +76,7 @@ export default function FormulaireStock({
           <form action={actionTransfert} className="grid grid-cols-2 gap-3">
             <input type="hidden" name="site_id" value={siteId} />
             <div className="col-span-2">
-              <ChampRecherche
+              <ChampPiece
                 label="Pièce à envoyer"
                 name="piece_id"
                 required

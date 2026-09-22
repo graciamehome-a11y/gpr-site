@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { Astuce, BoutonPrincipal, Carte, Champ, SousTitre } from "@/app/components/ui";
 import ChampRecherche from "@/app/components/ChampRecherche";
+import ChampPiece from "@/app/components/ChampPiece";
 import ChampQuantite from "@/app/components/ChampQuantite";
 import { ajouterDemande } from "./actions";
 
@@ -55,7 +56,7 @@ export default function FormulaireBon({
             options={vehicules}
           />
 
-          <ChampRecherche
+          <ChampPiece
             label="Pièce"
             name="piece_id"
             required

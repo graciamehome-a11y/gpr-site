@@ -1,9 +1,11 @@
 import { supabaseServeur } from "@/lib/supabaseServerClient";
 import { aVueGlobale, getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
 import { libellePiece, libelleTypeVehicule } from "@/lib/libelles";
-import { ajouterVehicule, changerStatutVehicule } from "./actions";
-import { Aide, Astuce, BoutonPrincipal, Carte, Champ, Conteneur, EtatVide, Selecteur, SousTitre, TitrePage } from "@/app/components/ui";
+import { changerStatutVehicule } from "./actions";
+import { Aide, Carte, Conteneur, EtatVide, TitrePage } from "@/app/components/ui";
 import { IlluVehicules } from "@/app/components/illustrations";
+import ChoixStatut from "@/app/components/ChoixStatut";
+import FormulaireVehicule from "./FormulaireVehicule";
 import FormulaireUtilisation from "./FormulaireUtilisation";
 
 type Vehicule = {
@@ -88,49 +90,11 @@ export default async function Vehicules() {
         </p>
       </Aide>
 
-      <Carte className="mb-6">
-        <SousTitre>Arrivée d&apos;un véhicule</SousTitre>
-        <div className="mb-3">
-          <Astuce>
-            Une fois le véhicule enregistré, tapez directement sur un statut pour le faire
-            avancer : <strong>Arrivé → En réparation → Transféré → Prêt</strong>.
-          </Astuce>
-        </div>
-        <form action={ajouterVehicule} className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <Champ label="Immatriculation" name="immatriculation" required autoFocus />
-          </div>
-          <div className={sites ? "" : "col-span-2"}>
-            <Selecteur label="Type" name="type_vehicule_id" required defaultValue="">
-              <option value="" disabled>
-                -- choisir --
-              </option>
-              {types?.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.nom}
-                </option>
-              ))}
-            </Selecteur>
-          </div>
-          {sites ? (
-            <Selecteur label="Site" name="site_id" required defaultValue="">
-              <option value="" disabled>
-                -- choisir --
-              </option>
-              {sites.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nom}
-                </option>
-              ))}
-            </Selecteur>
-          ) : (
-            <input type="hidden" name="site_id" value={utilisateur?.site_id ?? ""} />
-          )}
-          <div className="col-span-2">
-            <BoutonPrincipal type="submit">Enregistrer l&apos;arrivée</BoutonPrincipal>
-          </div>
-        </form>
-      </Carte>
+      <FormulaireVehicule
+        types={types ?? []}
+        sites={sites ?? null}
+        siteId={utilisateur?.site_id ?? null}
+      />
 
       {vehicules && vehicules.length === 0 && (
         <EtatVide
@@ -155,26 +119,12 @@ export default async function Vehicules() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {STATUTS.map((s) => {
-                  const actif = v.statut === s.valeur;
-                  return (
-                    <form key={s.valeur} action={changerStatutVehicule.bind(null, v.id, s.valeur)}>
-                      <button
-                        type="submit"
-                        disabled={actif}
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
-                          actif
-                            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                            : "bg-neutral-100 text-neutral-500 active:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400"
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    </form>
-                  );
-                })}
-              </div>
+              <ChoixStatut
+                id={v.id}
+                statuts={STATUTS}
+                actuel={v.statut}
+                action={changerStatutVehicule}
+              />
             </Carte>
           </li>
         ))}

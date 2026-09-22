@@ -5,6 +5,7 @@ import { mettreAJourStatut } from "./actions";
 import FormulaireBon from "./FormulaireBon";
 import { Aide, Badge, Carte, Conteneur, EtatVide, FluxStatuts, TitrePage } from "@/app/components/ui";
 import { IlluBons } from "@/app/components/illustrations";
+import ChoixStatut from "@/app/components/ChoixStatut";
 
 type Bon = {
   id: number;
@@ -159,26 +160,12 @@ export default async function Bons() {
                   texte={STATUTS.find((s) => s.valeur === b.statut)?.label ?? b.statut}
                 />
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {STATUTS.map((s) => {
-                  const actif = b.statut === s.valeur;
-                  return (
-                    <form key={s.valeur} action={mettreAJourStatut.bind(null, b.id, s.valeur)}>
-                      <button
-                        type="submit"
-                        disabled={actif}
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
-                          actif
-                            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                            : "bg-neutral-100 text-neutral-500 active:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400"
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    </form>
-                  );
-                })}
-              </div>
+              <ChoixStatut
+                id={b.id}
+                statuts={STATUTS}
+                actuel={b.statut}
+                action={mettreAJourStatut}
+              />
             </Carte>
           </li>
         ))}

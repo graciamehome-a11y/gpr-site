@@ -78,10 +78,31 @@ export async function ajouterDemande(_etat: EtatBon, formData: FormData): Promis
   return { succes: "Demande enregistrée." };
 }
 
-export async function mettreAJourStatut(id: number, statut: string) {
+// Un fichier "use server" ne peut exporter que des fonctions : cette liste
+// reste donc locale, et sert à refuser un statut inventé.
+const STATUTS_BON = ["en_attente", "valide", "refuse", "livre"] as const;
+
+export async function mettreAJourStatut(_etat: EtatBon, formData: FormData): Promise<EtatBon> {
+  const id = Number(formData.get("id"));
+  const statut = formData.get("statut") as string;
+
+  if (!id) return { erreur: "Bon introuvable." };
+  if (!STATUTS_BON.includes(statut as (typeof STATUTS_BON)[number])) {
+    return { erreur: "Statut inconnu." };
+  }
+
   const supabase = await supabaseServeur();
   const { error } = await supabase.from("demandes_pieces").update({ statut }).eq("id", id);
-  if (error) throw new Error(error.message);
+
+  if (error) {
+    if (error.code === "42501" || /row-level security|non autoris/i.test(error.message)) {
+      return { erreur: "Ce bon dépend d'un autre site : vous ne pouvez pas le modifier." };
+    }
+    console.error("mettreAJourStatut:", error.message);
+    return { erreur: "Le statut n'a pas pu être modifié. Réessayez dans un instant." };
+  }
+
   revalidatePath("/bons");
   revalidatePath("/");
+  return { succes: "Statut mis à jour." };
 }
