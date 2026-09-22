@@ -84,6 +84,9 @@ export async function creerCompte(_etat: EtatCompte, formData: FormData): Promis
     email,
     role_id,
     site_id,
+    // La personne devra choisir son propre mot de passe à la première
+    // connexion : celui-ci, l'administrateur le connaît.
+    doit_changer_mot_de_passe: true,
   });
 
   if (erreurProfil) {
@@ -144,6 +147,14 @@ export async function reinitialiserMotDePasse(
     console.error("updateUserById:", error.message);
     return { erreur: "Le mot de passe n'a pas pu être réinitialisé. Réessayez dans un instant." };
   }
+
+  // Même logique qu'à la création : ce mot de passe provisoire est connu de
+  // l'administrateur, la personne devra donc en choisir un à sa connexion.
+  const { error: erreurDrapeau } = await admin
+    .from("utilisateurs")
+    .update({ doit_changer_mot_de_passe: true })
+    .eq("id", id);
+  if (erreurDrapeau) console.error("drapeau mot de passe:", erreurDrapeau.message);
 
   revalidatePath("/admin/comptes");
   return { motDePasse, email: profil.email, reinitialisation: true };

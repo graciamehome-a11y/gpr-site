@@ -112,10 +112,17 @@ export default function FormulaireMotDePasse({
       }
     >
       {premier && (
-        <p className="mb-4 rounded-xl bg-accent-50/70 px-3.5 py-2.5 text-xs leading-relaxed text-accent-900 dark:bg-accent-950/40 dark:text-accent-200">
-          Notez-le quelque part de sûr. Personne ne pourra le retrouver à votre place — en cas
-          d&apos;oubli, un responsable devra vous en générer un nouveau.
-        </p>
+        <>
+          <p className="mb-3 rounded-xl bg-accent-50/70 px-3.5 py-2.5 text-xs leading-relaxed text-accent-900 dark:bg-accent-950/40 dark:text-accent-200">
+            Le mot de passe que vous avez utilisé pour entrer est <strong>provisoire</strong> : il a
+            été créé par un responsable, qui le connaît. Choisissez-en un maintenant, que vous serez
+            seul(e) à connaître. Il vous servira pour toutes vos prochaines connexions.
+          </p>
+          <p className="mb-4 text-xs leading-relaxed text-neutral-500">
+            Notez-le quelque part de sûr. Personne ne pourra le retrouver à votre place — en cas
+            d&apos;oubli, un responsable devra vous en générer un nouveau.
+          </p>
+        </>
       )}
 
       <form

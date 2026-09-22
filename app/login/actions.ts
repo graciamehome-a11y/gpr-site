@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { supabaseServeur } from "@/lib/supabaseServerClient";
+import { getUtilisateurConnecte } from "@/lib/getUtilisateurConnecte";
 
 export type EtatConnexion = { erreur?: string } | undefined;
 
@@ -33,6 +34,13 @@ export async function connexion(
       };
     }
     return { erreur: "Email ou mot de passe incorrect." };
+  }
+
+  // Si la personne utilise encore le mot de passe temporaire remis par
+  // l'administrateur, on l'amène directement à en choisir un personnel.
+  const profil = await getUtilisateurConnecte();
+  if (profil?.doit_changer_mot_de_passe) {
+    redirect("/mot-de-passe?premier=1");
   }
 
   redirect(suivant.startsWith("/") ? suivant : "/");

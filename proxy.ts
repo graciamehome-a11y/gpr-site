@@ -24,7 +24,14 @@ const ROUTES_PUBLIQUES = [
 ];
 
 export default async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  // Le chemin est transmis aux composants serveur via un en-tête : cela leur
+  // permet de savoir sur quelle page ils se trouvent (Next.js ne l'expose pas
+  // autrement), ce dont le layout a besoin pour rediriger une personne qui doit
+  // encore choisir son mot de passe — sans la rediriger depuis cette page même.
+  const entetes = new Headers(request.headers);
+  entetes.set("x-chemin", request.nextUrl.pathname);
+
+  let response = NextResponse.next({ request: { headers: entetes } });
 
   const supabase = createServerClient(
     urlSupabaseServeur(),
@@ -38,7 +45,7 @@ export default async function proxy(request: NextRequest) {
           cookiesAList.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          response = NextResponse.next({ request });
+          response = NextResponse.next({ request: { headers: entetes } });
           cookiesAList.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
           );

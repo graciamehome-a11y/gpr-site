@@ -73,6 +73,9 @@ try {
       email,
       role_id: role.id,
       site_id: site.id,
+      // Comme dans app/admin/comptes/actions.ts : le mot de passe provisoire
+      // devra être remplacé par la personne elle-même.
+      doit_changer_mot_de_passe: true,
     })
     .select("id")
     .single();
@@ -112,11 +115,42 @@ try {
     errMoi?.message ?? `${moi?.prenom} ${moi?.nom}`,
   );
 
-  // ------------------------ 4. Le site de production accepte cette session
+  // ------------------- 4. Le mot de passe provisoire doit être changé
+  // La personne vient d'entrer avec le mot de passe créé par l'administrateur,
+  // qui le connaît : l'application doit l'obliger à en choisir un personnel
+  // avant de la laisser utiliser quoi que ce soit.
+  const garde = await fetch(`${BASE}/stock`, { headers: { cookie }, redirect: "manual" });
+  const emplacement = garde.headers.get("location") ?? "";
+  verifier(
+    "l'application force le choix d'un mot de passe personnel",
+    garde.status === 307 && emplacement.includes("/mot-de-passe") && emplacement.includes("premier=1"),
+    `${garde.status} → ${emplacement}`,
+  );
+
+  const pageMotDePasse = await fetch(`${BASE}/mot-de-passe?premier=1`, {
+    headers: { cookie },
+    redirect: "manual",
+  });
+  const corpsMotDePasse = pageMotDePasse.status === 200 ? await pageMotDePasse.text() : "";
+  verifier(
+    "la page de choix reste accessible (pas de boucle de redirection)",
+    pageMotDePasse.status === 200 && /provisoire/i.test(corpsMotDePasse),
+    `HTTP ${pageMotDePasse.status}`,
+  );
+
+  // ------------------------------- 5. Changement de mot de passe (page dédiée)
+  const nouveau = motDePasseTemporaire();
+  const { error: errChangement } = await testeur.auth.updateUser({ password: nouveau });
+  verifier("changement de mot de passe depuis « Mon mot de passe »", !errChangement, errChangement?.message);
+
+  const { error: errDrapeau } = await testeur.rpc("marquer_mot_de_passe_personnel");
+  verifier("le mot de passe est marqué comme personnel", !errDrapeau, errDrapeau?.message);
+
+  // ------------- 6. Une fois le mot de passe personnel choisi, tout s'ouvre
   const accueil = await fetch(`${BASE}/`, { headers: { cookie }, redirect: "manual" });
   const corpsAccueil = accueil.status === 200 ? await accueil.text() : "";
   verifier(
-    "la production ouvre l'accueil avec cette session",
+    "l'accès est débloqué après le changement",
     accueil.status === 200 && corpsAccueil.includes("Bonjour"),
     `HTTP ${accueil.status}`,
   );
@@ -131,11 +165,6 @@ try {
 
   const autreSite = await fetch(`${BASE}/stock/3`, { headers: { cookie }, redirect: "manual" });
   verifier("le site d'un autre reste interdit (404)", autreSite.status === 404, `HTTP ${autreSite.status}`);
-
-  // ------------------------------- 5. Changement de mot de passe (page dédiée)
-  const nouveau = motDePasseTemporaire();
-  const { error: errChangement } = await testeur.auth.updateUser({ password: nouveau });
-  verifier("changement de mot de passe depuis « Mon mot de passe »", !errChangement, errChangement?.message);
 
   const jar2 = new Map();
   const testeur2 = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {

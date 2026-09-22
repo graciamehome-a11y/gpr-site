@@ -42,5 +42,13 @@ export async function changerMotDePasse(
 
   if (error) return { erreur: traduireErreur(error.message) };
 
+  // La personne a maintenant un mot de passe qu'elle est seule à connaître :
+  // on lève le drapeau qui l'obligeait à en choisir un. Si cet appel échoue,
+  // elle sera simplement invitée à nouveau — jamais bloquée.
+  const { error: erreurDrapeau } = await supabase.rpc("marquer_mot_de_passe_personnel");
+  if (erreurDrapeau) {
+    console.error("marquer_mot_de_passe_personnel:", erreurDrapeau.message);
+  }
+
   redirect("/");
 }

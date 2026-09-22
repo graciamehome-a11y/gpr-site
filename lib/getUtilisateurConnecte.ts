@@ -9,6 +9,11 @@ export type UtilisateurConnecte = {
   role: string;
   site_id: number | null;
   site_nom: string | null;
+  /**
+   * Vrai tant que la personne utilise le mot de passe temporaire transmis par
+   * l'administrateur. L'application la force alors à en choisir un elle-même.
+   */
+  doit_changer_mot_de_passe: boolean;
 };
 
 const ROLES_VUE_GLOBALE = [
@@ -33,7 +38,7 @@ export async function getUtilisateurConnecte(): Promise<UtilisateurConnecte | nu
 
   const { data, error } = await supabase
     .from("utilisateurs")
-    .select("id, nom, prenom, email, role_id, site_id, roles(nom), sites(nom)")
+    .select("id, nom, prenom, email, role_id, site_id, doit_changer_mot_de_passe, roles(nom), sites(nom)")
     .eq("auth_id", user.id)
     .single<{
       id: number;
@@ -42,6 +47,7 @@ export async function getUtilisateurConnecte(): Promise<UtilisateurConnecte | nu
       email: string;
       role_id: number;
       site_id: number | null;
+      doit_changer_mot_de_passe: boolean;
       roles: { nom: string } | null;
       sites: { nom: string } | null;
     }>();
@@ -56,6 +62,7 @@ export async function getUtilisateurConnecte(): Promise<UtilisateurConnecte | nu
     role: data.roles?.nom ?? "",
     site_id: data.site_id,
     site_nom: data.sites?.nom ?? null,
+    doit_changer_mot_de_passe: data.doit_changer_mot_de_passe ?? false,
   };
 }
 

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   accesCarburant,
   aVueGlobale,
@@ -9,9 +11,23 @@ import { libelleRole } from "@/lib/libelles";
 import { Icone } from "@/app/components/icones";
 import { NavLiensDesktop, NavLiensMobile, type LienNav } from "@/app/components/NavLiens";
 
+/** Pages accessibles même quand un mot de passe personnel reste à choisir. */
+const PAGES_OUVERTES = ["/mot-de-passe", "/auth/confirm", "/login", "/mot-de-passe-oublie"];
+
 export default async function Navbar() {
   const utilisateur = await getUtilisateurConnecte();
   if (!utilisateur) return null;
+
+  // Tant que la personne utilise le mot de passe temporaire transmis par
+  // l'administrateur, on l'amène à en choisir un elle-même — et on l'y
+  // maintient, car l'administrateur connaît ce mot de passe provisoire.
+  // Le chemin courant vient du proxy, qui le transmet en en-tête.
+  if (utilisateur.doit_changer_mot_de_passe) {
+    const chemin = (await headers()).get("x-chemin") ?? "/";
+    if (!PAGES_OUVERTES.some((p) => chemin.startsWith(p))) {
+      redirect("/mot-de-passe?premier=1");
+    }
+  }
 
   const liens: LienNav[] = (
     [
